@@ -2,49 +2,58 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  --foreground-rgb: 255, 255, 255;
-  --background-start-rgb: 15, 23, 42;
-  --background-end-rgb: 30, 41, 59;
+@layer base {
+  :root {
+    --background: 38 28% 93%;
+    --foreground: 20 18% 11%;
+    --card: 40 40% 98%;
+    --card-foreground: 20 18% 11%;
+    --popover: 40 40% 98%;
+    --popover-foreground: 20 18% 11%;
+    --primary: 32 62% 46%;
+    --primary-foreground: 38 35% 97%;
+    --secondary: 35 14% 87%;
+    --secondary-foreground: 20 15% 28%;
+    --muted: 36 16% 91%;
+    --muted-foreground: 25 10% 47%;
+    --accent: 33 42% 93%;
+    --accent-foreground: 32 62% 35%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 35 18% 84%;
+    --input: 35 18% 84%;
+    --ring: 32 62% 46%;
+    --radius: 0.25rem;
+  }
+
+  .dark {
+    --background: 20 18% 8%;
+    --foreground: 38 25% 92%;
+    --card: 20 15% 11%;
+    --card-foreground: 38 25% 92%;
+    --popover: 20 15% 11%;
+    --popover-foreground: 38 25% 92%;
+    --primary: 32 70% 54%;
+    --primary-foreground: 20 18% 8%;
+    --secondary: 20 12% 18%;
+    --secondary-foreground: 38 20% 85%;
+    --muted: 20 12% 18%;
+    --muted-foreground: 30 10% 58%;
+    --accent: 32 40% 18%;
+    --accent-foreground: 32 60% 75%;
+    --destructive: 0 62% 45%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 20 12% 22%;
+    --input: 20 12% 22%;
+    --ring: 32 70% 54%;
+  }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
-  min-height: 100vh;
-}
-
-/* Scrollbar customizada */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
-}
-
-::-webkit-scrollbar-track {
-  background: #1e293b;
-}
-
-::-webkit-scrollbar-thumb {
-  background: #475569;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #64748b;
-}
-
-/* Animações suaves */
-* {
-  scroll-behavior: smooth;
-}
-
-/* Focus states acessíveis */
-*:focus-visible {
-  outline: 2px solid #10b981;
-  outline-offset: 2px;
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }

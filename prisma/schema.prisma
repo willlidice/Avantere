@@ -7,137 +7,236 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Organizacao {
+  id                   Int       @id @default(autoincrement())
+  nome                 String
+  slug                 String    @unique
+  plano                Plano     @default(TRIAL)
+  ativa                Boolean   @default(true)
+  trialFim             DateTime?
+  stripeCustomerId     String?
+  stripeSubscriptionId String?
+  criadoEm             DateTime  @default(now())
+  usuarios             User[]
+  obras                Obra[]
+  convites             Convite[]
+}
+
+enum Plano {
+  TRIAL
+  PRO
+  ENTERPRISE
+}
+
+model Convite {
+  id            Int         @id @default(autoincrement())
+  token         String      @unique @default(uuid())
+  email         String
+  organizacaoId Int
+  perfil        Perfil      @default(GESTAO)
+  expiresAt     DateTime
+  usado         Boolean     @default(false)
+  criadoEm      DateTime    @default(now())
+  organizacao   Organizacao @relation(fields: [organizacaoId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@index([organizacaoId])
+}
+
 model User {
-  id            String          @id @default(cuid())
-  name          String?
-  email         String          @unique
-  emailVerified DateTime?
-  password      String?
-  image         String?
-  role          String          @default("PRODUCAO")
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  accounts      Account[]
-  files         File[]
-  projects      ProjectMember[]
-  sessions      Session[]
-  tasks         Task[]
+  id             Int         @id @default(autoincrement())
+  nome           String
+  email          String      @unique
+  senha          String
+  perfil         Perfil      @default(PRODUCAO)
+  ativo          Boolean     @default(true)
+  criadoEm       DateTime    @default(now())
+  idioma         String      @default("pt")
+  notifEmail     Boolean     @default(false)
+  notifDias      Int         @default(7)
+  onboardingStep Int         @default(0)
+  organizacaoId  Int?
+  organizacao    Organizacao? @relation(fields: [organizacaoId], references: [id])
+  obras          ObraUser[]
+  logs           LogEdicao[]
 }
 
-model Account {
-  id                String  @id @default(cuid())
-  userId            String
-  type              String
-  provider          String
-  providerAccountId String
-  refresh_token     String?
-  access_token      String?
-  expires_at        Int?
-  token_type        String?
-  scope             String?
-  id_token          String?
-  session_state     String?
-  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+model LogEdicao {
+  id           Int      @id @default(autoincrement())
+  userId       Int
+  user         User     @relation(fields: [userId], references: [id])
+  obraId       Int?
+  cronogramaId Int?
+  tarefaId     Int?
+  acao         String
+  dadosAntes   Json?
+  dadosDepois  Json?
+  criadoEm     DateTime @default(now())
 
-  @@unique([provider, providerAccountId])
-}
-
-model Session {
-  id           String   @id @default(cuid())
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-}
-
-model VerificationToken {
-  identifier String
-  token      String   @unique
-  expires    DateTime
-
-  @@unique([identifier, token])
-}
-
-model Project {
-  id          String          @id @default(cuid())
-  name        String
-  description String?
-  status      String          @default("PLANNING")
-  startDate   DateTime?
-  endDate     DateTime?
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
-  files       File[]
-  members     ProjectMember[]
-  tasks       Task[]
-}
-
-model ProjectMember {
-  id        String   @id @default(cuid())
-  userId    String
-  projectId String
-  role      String   @default("MEMBER")
-  joinedAt  DateTime @default(now())
-  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, projectId])
-}
-
-model Task {
-  id          String    @id @default(cuid())
-  title       String
-  description String?
-  status      String    @default("PENDING")
-  priority    String    @default("MEDIUM")
-  dueDate     DateTime?
-  projectId   String
-  assigneeId  String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  files       File[]
-  assignee    User?     @relation(fields: [assigneeId], references: [id])
-  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
-}
-
-model File {
-  id          String    @id @default(cuid())
-  
-  // Informações básicas do arquivo
-  name        String                          // Nome original do arquivo
-  key         String    @unique               // Caminho único no storage
-  url         String                          // URL completa de acesso
-  size        Int                             // Tamanho em bytes
-  type        String                          // MIME type
-  category    String    @default("geral")     // plantas, contratos, fotos, etc
-  
-  // Versionamento
-  version     Int       @default(1)           // Número da versão
-  isLatest    Boolean   @default(true)        // É a versão mais recente?
-  originalFileId String?                      // ID do arquivo original
-  
-  // Metadados extras
-  description String?                         // Descrição opcional
-  
-  // Relações
-  projectId   String?
-  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
-  
-  taskId      String?
-  task        Task?     @relation(fields: [taskId], references: [id], onDelete: SetNull)
-  
-  userId      String
-  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
-  // Timestamps
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
-  
-  // Índices para performance
-  @@index([projectId])
-  @@index([category])
-  @@index([isLatest])
-  @@index([originalFileId])
+  @@index([obraId])
+  @@index([tarefaId])
   @@index([userId])
 }
 
+model Obra {
+  id            Int          @id @default(autoincrement())
+  nome          String
+  ativa         Boolean      @default(true)
+  criadoEm      DateTime     @default(now())
+  organizacaoId Int?
+  organizacao   Organizacao? @relation(fields: [organizacaoId], references: [id])
+  cronogramas   Cronograma[]
+  usuarios      ObraUser[]
+
+  @@index([organizacaoId, ativa])
+  // Dados do projeto
+  cliente       String?
+  cnpjCliente   String?
+  cnpjObra      String?
+  cnoObra       String?
+  dataInicio    DateTime?
+  dataFim       DateTime?
+  escopo        String?
+  valorContrato Decimal?     @db.Decimal(15, 2)
+  aditivos      Aditivo[]
+  documentos    Documento[]
+}
+
+model Aditivo {
+  id        Int         @id @default(autoincrement())
+  obraId    Int
+  obra      Obra        @relation(fields: [obraId], references: [id], onDelete: Cascade)
+  tipo      TipoAditivo
+  descricao String?
+  valor     Decimal?    @db.Decimal(15, 2)
+  dataFim   DateTime?
+  criadoEm  DateTime    @default(now())
+
+  @@index([obraId])
+}
+
+enum TipoAditivo {
+  PRAZO
+  VALOR
+}
+
+model Documento {
+  id        Int      @id @default(autoincrement())
+  obraId    Int
+  obra      Obra     @relation(fields: [obraId], references: [id], onDelete: Cascade)
+  nome      String
+  url       String
+  tipo      String?
+  tamanho   Int?
+  criadoEm  DateTime @default(now())
+
+  @@index([obraId])
+}
+
+model ObraUser {
+  id     Int  @id @default(autoincrement())
+  userId Int
+  obraId Int
+  obra   Obra @relation(fields: [obraId], references: [id], onDelete: Cascade)
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, obraId])
+  @@index([userId])
+}
+
+model Cronograma {
+  id       Int      @id @default(autoincrement())
+  obraId   Int
+  versao   Int      @default(1)
+  criadoEm DateTime @default(now())
+  obra     Obra     @relation(fields: [obraId], references: [id], onDelete: Cascade)
+  tarefas  Tarefa[]
+
+  @@unique([obraId, versao])
+  @@index([obraId])
+}
+
+model Tarefa {
+  id                Int            @id @default(autoincrement())
+  cronogramaId      Int
+  idExterno         String
+  nome              String
+  nomeTraduzido     String?
+  traducaoJson      Json?
+  local             String
+  quantidade        Float
+  unidade           String
+  inicio            DateTime
+  fim               DateTime
+  ordem             Int
+  jpgEditadoUrl     String?
+  responsavel       String?
+  statusManual      StatusManual?
+  dataConclusaoReal DateTime?
+  cronograma        Cronograma      @relation(fields: [cronogramaId], references: [id], onDelete: Cascade)
+  imagens           TarefaImagem[]
+  comentarios       Comentario[]
+  antecessoras      TarefaRelacao[] @relation("Sucessora")
+  sucessoras        TarefaRelacao[] @relation("Antecessora")
+
+  @@index([cronogramaId])
+}
+
+model TarefaRelacao {
+  id            Int    @id @default(autoincrement())
+  antecessoraId Int
+  sucessoraId   Int
+  antecessora   Tarefa @relation("Antecessora", fields: [antecessoraId], references: [id], onDelete: Cascade)
+  sucessora     Tarefa @relation("Sucessora", fields: [sucessoraId], references: [id], onDelete: Cascade)
+
+  @@unique([antecessoraId, sucessoraId])
+  @@index([antecessoraId])
+  @@index([sucessoraId])
+}
+
+enum StatusManual {
+  ANDAMENTO
+  COM_INTERFERENCIA
+  ATRASADO
+  CONCLUIDO
+  REPROGRAMAR
+}
+
+model TarefaImagem {
+  id        Int      @id @default(autoincrement())
+  tarefaId  Int
+  url       String
+  nome      String   @default("")
+  ordem     Int      @default(0)
+  criadoEm  DateTime @default(now())
+  tarefa    Tarefa   @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@index([tarefaId])
+}
+
+model Comentario {
+  id        Int      @id @default(autoincrement())
+  tarefaId  Int
+  userId    Int
+  userNome  String
+  texto     String
+  criadoEm  DateTime @default(now())
+  tarefa    Tarefa   @relation(fields: [tarefaId], references: [id], onDelete: Cascade)
+
+  @@index([tarefaId])
+}
+
+model PushSubscription {
+  id       Int    @id @default(autoincrement())
+  userId   Int    @unique
+  endpoint String
+  p256dh   String
+  auth     String
+}
+
+enum Perfil {
+  SUPER_ADMIN
+  ADMIN
+  GESTAO
+  PRODUCAO
+}

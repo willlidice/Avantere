@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN     "notifDias" INTEGER NOT NULL DEFAULT 7,
+ADD COLUMN     "notifEmail" BOOLEAN NOT NULL DEFAULT false;

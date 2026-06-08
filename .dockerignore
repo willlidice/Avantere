@@ -1,34 +1,12 @@
-# Dependências (serão instaladas no servidor)
-node_modules
-
-# Arquivos de desenvolvimento
-.env.local
-.env.development
-*.log
-
-# Arquivos do Git
 .git
 .gitignore
-
-# Banco de dados local
-prisma/dev.db
-prisma/dev.db-journal
-
-# Build local
+node_modules
 .next
-
-# Arquivos do sistema
-.DS_Store
-Thumbs.db
-
-# IDE
-.vscode
-.idea
-
-# Testes
-coverage
-.nyc_output
-
-# Documentação de dev
+.env
+.env.*
+!.env.example
+Dockerfile
+.dockerignore
 README.md
-docs
+*.md
+.vscode

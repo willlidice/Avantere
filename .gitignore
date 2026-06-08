@@ -1,103 +1,46 @@
-# ============================================
-# 🚫 AVANTERE - ARQUIVOS IGNORADOS PELO GIT
-# ============================================
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# --------------------------------------------
-# 📦 Dependências
-# --------------------------------------------
-node_modules/
-.pnpm-store/
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
 
-# --------------------------------------------
-# 🔨 Build & Output
-# --------------------------------------------
-.next/
-out/
-dist/
-build/
-*.tsbuildinfo
+# testing
+/coverage
 
-# --------------------------------------------
-# 🔐 Variáveis de Ambiente (SEGREDOS!)
-# --------------------------------------------
-.env
-.env.*
-!.env.example
+# next.js
+/.next/
+/out/
 
-# --------------------------------------------
-# 🧪 Testes & Coverage
-# --------------------------------------------
-coverage/
-.nyc_output/
-*.lcov
+# production
+/build
 
-# --------------------------------------------
-# 📝 Logs
-# --------------------------------------------
-logs/
-*.log
+# misc
+.DS_Store
+*.pem
+
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 
-# --------------------------------------------
-# 💻 Sistema Operacional
-# --------------------------------------------
-.DS_Store
-Thumbs.db
-Desktop.ini
+# local env files
+.env
+.env*.local
 
-# --------------------------------------------
-# 🛠️ IDEs & Editores
-# --------------------------------------------
-.idea/
-.vscode/*
-!.vscode/extensions.json
-!.vscode/settings.json
-*.swp
-*.swo
-*~
+# uploads de usuários
+/public/uploads/
 
-# --------------------------------------------
-# 🗄️ Banco de Dados Local
-# --------------------------------------------
-*.sqlite
-*.sqlite3
-*.db
-prisma/*.db
-prisma/*.db-journal
+# debug scripts
+test-r2.mjs
 
-# --------------------------------------------
-# 📦 Cache
-# --------------------------------------------
-.cache/
-.turbo/
-.eslintcache
-.stylelintcache
-*.cache
+# sessões e cookies
+cookies.txt
 
-# --------------------------------------------
-# 🔧 Temporários
-# --------------------------------------------
-tmp/
-temp/
-*.tmp
-*.temp
-
-# --------------------------------------------
-# 📊 Vercel
-# --------------------------------------------
+# vercel
 .vercel
 
-# --------------------------------------------
-# 🐳 Docker (volumes locais)
-# --------------------------------------------
-docker-data/
-
-# --------------------------------------------
-# 📱 Mobile (se usar React Native futuramente)
-# --------------------------------------------
-*.apk
-*.ipa
-# Uploads
+# typescript
+*.tsbuildinfo
+next-env.d.ts

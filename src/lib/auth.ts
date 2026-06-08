@@ -1,92 +1,74 @@
-﻿import { NextAuthOptions } from "next-auth";
+import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
-// import { PrismaAdapter } from "@auth/prisma-adapter";  // ❌ Comentar
-import { prisma } from "./prisma";
+import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
-
-const isProduction = process.env.NODE_ENV === "production";
+import { Perfil, Plano } from "@prisma/client";
 
 export const authOptions: NextAuthOptions = {
-  // ❌ REMOVA OU COMENTE ESTA LINHA:
-  // adapter: PrismaAdapter(prisma) as any,
-
+  session: { strategy: "jwt" },
+  pages: { signIn: "/login" },
   providers: [
     CredentialsProvider({
       name: "credentials",
       credentials: {
         email: { label: "Email", type: "email" },
-        password: { label: "Senha", type: "password" },
+        senha: { label: "Senha", type: "password" },
       },
       async authorize(credentials) {
-        if (!credentials?.email || !credentials?.password) {
-          throw new Error("Credenciais inválidas");
-        }
+        if (!credentials?.email || !credentials?.senha) return null;
 
         const user = await prisma.user.findUnique({
           where: { email: credentials.email },
+          include: { organizacao: { select: { id: true, plano: true, trialFim: true } } },
         });
 
-        if (!user || !user.password) {
-          throw new Error("Usuário não encontrado");
-        }
+        if (!user || !user.ativo) return null;
 
-        const isValid = await bcrypt.compare(credentials.password, user.password);
-
-        if (!isValid) {
-          throw new Error("Senha incorreta");
-        }
+        const senhaValida = await bcrypt.compare(credentials.senha, user.senha);
+        if (!senhaValida) return null;
 
         return {
-          id: user.id,
-          name: user.name,
+          id: String(user.id),
+          name: user.nome,
           email: user.email,
-          role: user.role,
+          perfil: user.perfil,
+          organizacaoId: user.organizacaoId,
+          plano: user.organizacao?.plano ?? null,
+          trialFim: user.organizacao?.trialFim?.toISOString() ?? null,
+        } as {
+          id: string;
+          name: string;
+          email: string;
+          perfil: Perfil;
+          organizacaoId: number | null;
+          plano: Plano | null;
+          trialFim: string | null;
         };
       },
     }),
   ],
-
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60,
-  },
-
-  pages: {
-    signIn: "/login",
-    error: "/login",
-  },
-
   callbacks: {
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
-        token.role = (user as any).role;
+        token.perfil = (user as unknown as { perfil: Perfil }).perfil;
+        token.organizacaoId =
+          (user as unknown as { organizacaoId: number | null }).organizacaoId ?? null;
+        token.plano =
+          (user as unknown as { plano: Plano | null }).plano ?? null;
+        token.trialFim =
+          (user as unknown as { trialFim: string | null }).trialFim ?? null;
       }
       return token;
     },
     async session({ session, token }) {
-      if (session.user) {
-        (session.user as any).id = token.id;
-        (session.user as any).role = token.role;
+      if (token) {
+        session.user.id = token.id as string;
+        session.user.perfil = token.perfil as Perfil;
+        session.user.organizacaoId = (token.organizacaoId as number | null) ?? null;
+        session.user.plano = (token.plano as Plano | null) ?? null;
       }
       return session;
     },
   },
-
-  cookies: {
-    sessionToken: {
-      name: isProduction
-        ? `__Secure-next-auth.session-token`
-        : `next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: isProduction,
-        domain: isProduction ? ".avantere.com.br" : undefined,
-      },
-    },
-  },
-
-  debug: !isProduction,
 };

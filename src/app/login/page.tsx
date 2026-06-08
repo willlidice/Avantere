@@ -1,114 +1,141 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
-import Link from 'next/link'
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter } from "next/navigation";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [senha, setSenha] = useState("");
+  const [erro, setErro] = useState("");
+  const [carregando, setCarregando] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setErro("");
+    setCarregando(true);
 
-    try {
-      const result = await signIn('credentials', {
-        email,
-        password,
-        redirect: false,
-      })
+    const resultado = await signIn("credentials", {
+      email,
+      senha,
+      redirect: false,
+    });
 
-      if (result?.error) {
-        setError('Email ou senha inválidos')
-        setLoading(false)
-        return
-      }
+    setCarregando(false);
 
-      router.push('/dashboard')
-    } catch (err) {
-      setError('Ocorreu um erro. Tente novamente.')
-      setLoading(false)
+    if (resultado?.error) {
+      setErro("Email ou senha inválidos.");
+      return;
     }
+
+    router.push("/");
+    router.refresh();
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-6">
-      <div className="w-full max-w-md">
-        {/* Logo */}
-        <div className="text-center mb-8">
-          <Link href="/" className="text-3xl font-bold text-white">
-            🏗️ Avantere
-          </Link>
-          <p className="text-slate-400 mt-2">Acesse sua conta</p>
+    <div className="min-h-screen flex">
+      {/* Painel esquerdo — identidade da marca */}
+      <div className="hidden lg:flex lg:w-[42%] bg-stone-900 flex-col justify-between px-12 py-10 relative overflow-hidden">
+        <div
+          className="absolute inset-0 opacity-[0.035]"
+          style={{
+            backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 48px, rgba(255,255,255,1) 48px, rgba(255,255,255,1) 49px), repeating-linear-gradient(90deg, transparent, transparent 48px, rgba(255,255,255,1) 48px, rgba(255,255,255,1) 49px)`,
+          }}
+        />
+        <div className="relative z-10">
+          <div className="flex items-center gap-2.5 mb-16">
+            <div className="w-7 h-7 bg-amber-600 flex items-center justify-center shrink-0">
+              <span className="text-white font-bold text-sm leading-none">A</span>
+            </div>
+            <span className="text-stone-100 font-semibold tracking-[0.1em] uppercase text-sm">
+              Avantere
+            </span>
+          </div>
+          <div>
+            <div className="w-8 h-0.5 bg-amber-600 mb-6" />
+            <h2 className="text-[2.1rem] font-light text-stone-100 leading-[1.35] tracking-tight">
+              Gestão inteligente<br />
+              de cronogramas<br />
+              de obra.
+            </h2>
+          </div>
         </div>
+        <div className="relative z-10">
+          <p className="text-xs text-stone-700">© 2025 Avantere</p>
+        </div>
+      </div>
 
-        {/* Card */}
-        <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-8">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Erro */}
-            {error && (
-              <div className="p-4 bg-red-500/10 border border-red-500/50 rounded-lg text-red-400 text-sm">
-                {error}
-              </div>
-            )}
+      {/* Painel direito — formulário */}
+      <div className="flex-1 flex items-center justify-center bg-[#F2EDE3] px-6">
+        <div className="w-full max-w-[340px]">
+          {/* Logo mobile */}
+          <div className="flex items-center gap-2 mb-10 lg:hidden">
+            <div className="w-6 h-6 bg-amber-600 flex items-center justify-center shrink-0">
+              <span className="text-white font-bold text-xs leading-none">A</span>
+            </div>
+            <span className="text-stone-900 font-semibold tracking-[0.09em] uppercase text-xs">
+              Avantere
+            </span>
+          </div>
 
-            {/* Email */}
+          <div className="mb-8">
+            <h1 className="text-2xl font-semibold text-stone-900 tracking-tight">Acesso</h1>
+            <p className="text-sm text-stone-500 mt-1">Entre com suas credenciais para continuar</p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-slate-300 mb-2">
+              <label
+                htmlFor="email"
+                className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-stone-500 mb-2"
+              >
                 Email
               </label>
               <input
                 id="email"
                 type="email"
+                placeholder="seu@email.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
-                placeholder="seu@email.com"
+                disabled={carregando}
+                className="w-full h-11 px-3.5 bg-white border border-stone-300 text-sm text-stone-900 rounded-[3px] focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-colors placeholder:text-stone-400 disabled:opacity-60"
               />
             </div>
-
-            {/* Senha */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
+              <label
+                htmlFor="senha"
+                className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-stone-500 mb-2"
+              >
                 Senha
               </label>
               <input
-                id="password"
+                id="senha"
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 transition-colors"
                 placeholder="••••••••"
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                required
+                disabled={carregando}
+                className="w-full h-11 px-3.5 bg-white border border-stone-300 text-sm text-stone-900 rounded-[3px] focus:outline-none focus:ring-2 focus:ring-amber-500/40 focus:border-amber-500 transition-colors placeholder:text-stone-400 disabled:opacity-60"
               />
             </div>
 
-            {/* Botão */}
+            {erro && (
+              <p className="text-sm text-red-600">{erro}</p>
+            )}
+
             <button
               type="submit"
-              disabled={loading}
-              className="w-full py-3 bg-emerald-600 text-white font-semibold rounded-lg hover:bg-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              disabled={carregando}
+              className="w-full h-11 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-[3px] transition-colors tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
             >
-              {loading ? 'Entrando...' : 'Entrar'}
+              {carregando ? "Entrando..." : "Entrar"}
             </button>
           </form>
-
-          {/* Link registro */}
-          <p className="text-center text-slate-400 mt-6">
-            Não tem conta?{' '}
-            <Link href="/registro" className="text-emerald-400 hover:text-emerald-300 font-medium">
-              Criar conta
-            </Link>
-          </p>
         </div>
       </div>
-    </main>
-  )
+    </div>
+  );
 }
