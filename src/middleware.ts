@@ -26,14 +26,15 @@ export default withAuth(
       return NextResponse.redirect(new URL("/billing?trial=expirado", req.url));
     }
 
-    // PRODUCAO: só acessa /dashboard, /tarefas, /busca, /configuracoes, /documentacao
+    // PRODUCAO: só acessa /dashboard, /tarefas, /busca, /configuracoes, /documentacao, /sugestoes
     if (token?.perfil === "PRODUCAO") {
       const permitido =
         pathname.startsWith("/dashboard") ||
         pathname.startsWith("/tarefas") ||
         pathname.startsWith("/busca") ||
         pathname.startsWith("/configuracoes") ||
-        pathname.startsWith("/documentacao");
+        pathname.startsWith("/documentacao") ||
+        pathname.startsWith("/sugestoes");
       if (!permitido) {
         return NextResponse.redirect(new URL("/dashboard", req.url));
       }

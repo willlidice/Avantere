@@ -42,7 +42,7 @@ export async function POST(req: NextRequest, { params }: Params) {
   const arquivo = formData.get("jpg") as File | null
   if (!arquivo) return NextResponse.json({ erro: "Arquivo JPG não enviado" }, { status: 400 })
 
-  const MAX_JPG_BYTES = 10 * 1024 * 1024 // 10 MB
+  const MAX_JPG_BYTES = 25 * 1024 * 1024 // 25 MB (pixelRatio 3 gera arquivos maiores)
   if (arquivo.size > MAX_JPG_BYTES)
     return NextResponse.json({ erro: "Imagem excede o limite de 10 MB" }, { status: 413 })
 

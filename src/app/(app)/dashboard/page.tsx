@@ -18,8 +18,16 @@ import {
   Image,
   Search,
   X,
+  AlertTriangle,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog"
 import { useIdioma } from "@/contexts/idioma-context"
 import { t } from "@/lib/i18n"
 import { statusTarefa } from "@/lib/status-tarefa"
@@ -75,15 +83,29 @@ function StatCard({
   valor,
   cor,
   sub,
+  onClick,
 }: {
   icon: React.ElementType
   label: string
   valor: number
   cor: string
   sub?: string
+  onClick?: () => void
 }) {
-  return (
-    <div className="bg-white border rounded-xl p-5 space-y-3">
+  const base = "bg-white border rounded-xl p-5 space-y-3 transition-all"
+  return onClick ? (
+    <button onClick={onClick} className={`${base} hover:shadow-md hover:border-gray-300 cursor-pointer text-left w-full`}>
+      <div className="flex items-center justify-between">
+        <span className="text-sm text-gray-500">{label}</span>
+        <div className={`p-2 rounded-lg ${cor}`}>
+          <Icon className="h-4 w-4 text-white" />
+        </div>
+      </div>
+      <p className="text-3xl font-bold text-gray-900">{valor.toLocaleString("pt-BR")}</p>
+      {sub && <p className="text-xs text-gray-400">{sub}</p>}
+    </button>
+  ) : (
+    <div className={base}>
       <div className="flex items-center justify-between">
         <span className="text-sm text-gray-500">{label}</span>
         <div className={`p-2 rounded-lg ${cor}`}>
@@ -225,6 +247,13 @@ export default function DashboardPage() {
   const [obras, setObras] = useState<ObraComTarefas[]>([])
   const [carregando, setCarregando] = useState(true)
   const [erro, setErro] = useState<string | null>(null)
+  const [modalTitulo, setModalTitulo] = useState<string | null>(null)
+  const [modalTarefas, setModalTarefas] = useState<Array<{ id: number; idExterno: string; nome: string; nomeTraduzido: string | null; local: string; inicio: string; fim: string; obraNome: string }>>([])
+
+  function abrirModal(titulo: string, lista: typeof modalTarefas) {
+    setModalTitulo(titulo)
+    setModalTarefas(lista)
+  }
 
   useEffect(() => {
     fetch("/api/tarefas")
@@ -276,11 +305,54 @@ export default function DashboardPage() {
       .map((ta) => ({ ...ta, obraNome: o.obraNome }))
   ).sort((a, b) => new Date(a.fim).getTime() - new Date(b.fim).getTime())
 
+  const atrasadas = obras.flatMap((o) =>
+    o.tarefas
+      .filter((ta) => {
+        if (statusTarefa(ta) === "concluida") return false
+        const fim = new Date(ta.fim)
+        return fim < hoje
+      })
+      .map((ta) => ({ ...ta, obraNome: o.obraNome }))
+  ).sort((a, b) => new Date(a.fim).getTime() - new Date(b.fim).getTime())
+
   const nome = session?.user?.name ?? ""
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
       <BannerBoasVindas />
+
+      {/* Modal detalhes tarefas */}
+      <Dialog open={!!modalTitulo} onOpenChange={(open) => { if (!open) setModalTitulo(null) }}>
+        <DialogContent className="max-w-lg max-h-[80vh] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              {modalTitulo}
+              <Badge variant="secondary" className="ml-auto">{modalTarefas.length}</Badge>
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-2 mt-2">
+            {modalTarefas.length === 0 ? (
+              <p className="text-sm text-gray-500 text-center py-6">Nenhuma tarefa nessa categoria.</p>
+            ) : (
+              modalTarefas.map((ta, i) => (
+                <div key={i} className="flex items-start gap-3 p-3 bg-gray-50 rounded-lg border">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-800 truncate">
+                      {ta.nomeTraduzido ?? ta.nome}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-0.5">{ta.obraNome} · {ta.local}</p>
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <p className="text-xs font-semibold text-red-600">{formatarData(ta.fim)}</p>
+                    <p className="text-[10px] text-gray-400">{ta.idExterno}</p>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* Header */}
       <div>
@@ -313,12 +385,15 @@ export default function DashboardPage() {
             valor={andamento}
             cor="bg-green-500"
             sub={andamento === 0 ? undefined : `${Math.round((andamento / total) * 100)}%`}
+            onClick={() => abrirModal("Tarefas em andamento", todasTarefas.filter((ta) => statusTarefa(ta) === "andamento").map((ta) => ({ ...ta, obraNome: obras.find((o) => o.tarefas.some((t) => t.id === ta.id))?.obraNome ?? "" })))}
           />
           <StatCard
-            icon={CalendarClock}
-            label={t(idioma, "statusFutura")}
-            valor={futuras}
-            cor="bg-blue-500"
+            icon={AlertTriangle}
+            label="Atrasadas"
+            valor={atrasadas.length}
+            cor={atrasadas.length > 0 ? "bg-red-500" : "bg-gray-400"}
+            sub={atrasadas.length > 0 ? "Clique para ver" : undefined}
+            onClick={atrasadas.length > 0 ? () => abrirModal("Tarefas atrasadas", atrasadas) : undefined}
           />
           <StatCard
             icon={CheckCircle2}

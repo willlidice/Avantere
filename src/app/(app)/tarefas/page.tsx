@@ -28,7 +28,10 @@ import {
   ClipboardList,
   AlertTriangle,
   CheckCircle2,
+  Camera,
+  FolderOpen,
 } from "lucide-react"
+import { useRef } from "react"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
@@ -267,12 +270,47 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
   onResize?: (tamanho: "sm" | "md" | "lg") => void
 }) {
   const [imagemIdx, setImagemIdx] = useState(0)
-  const imagensDetalhe = todasImagensTarefa(tarefa)
+  const [imagensLocais, setImagensLocais] = useState<TarefaImagem[]>(tarefa.imagens)
+  const imagensDetalhe = todasImagensTarefa({ ...tarefa, imagens: imagensLocais })
   const [comentarios, setComentarios] = useState<Comentario[]>([])
   const [novoComentario, setNovoComentario] = useState("")
   const [enviandoComentario, setEnviandoComentario] = useState(false)
   const [historicoStatus, setHistoricoStatus] = useState<HistoricoStatus[]>([])
   const [abaAtiva, setAbaAtiva] = useState<"detalhes" | "comentarios" | "historico">("detalhes")
+  const [uploadandoFoto, setUploadandoFoto] = useState(false)
+  const [erroFoto, setErroFoto] = useState<string | null>(null)
+  const inputFotoRef = useRef<HTMLInputElement>(null)
+  const inputCameraRef = useRef<HTMLInputElement>(null)
+
+  async function uploadFoto(file: File) {
+    setUploadandoFoto(true)
+    setErroFoto(null)
+    try {
+      const form = new FormData()
+      form.append("imagem", file)
+      form.append("nome", file.name)
+      const res = await fetch(`/api/obras/${obraId}/cronograma/${versao}/tarefas/${tarefa.id}/imagens`, {
+        method: "POST",
+        body: form,
+      })
+      if (!res.ok) {
+        const d = await res.json()
+        setErroFoto(d.erro ?? "Erro ao enviar foto")
+      } else {
+        const novaImagem = await res.json()
+        setImagensLocais((prev) => [...prev, novaImagem])
+        setImagemIdx(imagensLocais.length)
+      }
+    } finally {
+      setUploadandoFoto(false)
+    }
+  }
+
+  function handleFotoChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (file) uploadFoto(file)
+    e.target.value = ""
+  }
 
   useEffect(() => {
     fetch(`/api/obras/${obraId}/cronograma/${versao}/tarefas/${tarefa.id}/comentarios`)
@@ -633,6 +671,35 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
           </div>
         </>
       )}
+
+      {/* Botão foto — visível a todos os perfis */}
+      <Separator />
+      <div className="px-5 py-3 space-y-2">
+        <p className="text-[10px] font-semibold uppercase tracking-wide text-gray-400">Registrar foto</p>
+        <div className="flex gap-2 flex-wrap">
+          <Button
+            size="sm"
+            className="bg-amber-500 hover:bg-amber-600 text-white gap-1.5"
+            disabled={uploadandoFoto}
+            onClick={() => inputCameraRef.current?.click()}
+          >
+            {uploadandoFoto ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+            {uploadandoFoto ? "Enviando..." : "Câmera"}
+          </Button>
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={uploadandoFoto}
+            onClick={() => inputFotoRef.current?.click()}
+          >
+            <FolderOpen className="h-3.5 w-3.5 mr-1.5" />
+            Arquivo
+          </Button>
+        </div>
+        {erroFoto && <p className="text-xs text-red-500">{erroFoto}</p>}
+        <input ref={inputFotoRef} type="file" accept=".jpg,.jpeg,image/*" className="hidden" onChange={handleFotoChange} />
+        <input ref={inputCameraRef} type="file" accept="image/*" capture="environment" className="hidden" onChange={handleFotoChange} />
+      </div>
 
       {/* Rodapé */}
       <div className="flex justify-end px-5 pb-5 pt-2">

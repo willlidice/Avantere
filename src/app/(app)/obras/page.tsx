@@ -20,7 +20,13 @@ export default async function ObrasPage() {
         orderBy: { criadoEm: "desc" },
       })
 
-  const obrasSerializadas = obras.map((o) => ({ ...o, criadoEm: o.criadoEm.toISOString() }))
+  const obrasSerializadas = obras.map((o) => ({
+    ...o,
+    criadoEm: o.criadoEm.toISOString(),
+    dataInicio: o.dataInicio?.toISOString() ?? null,
+    dataFim: o.dataFim?.toISOString() ?? null,
+    valorContrato: o.valorContrato ? Number(o.valorContrato) : null,
+  }))
 
   return (
     <div className="max-w-4xl mx-auto">

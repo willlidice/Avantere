@@ -287,7 +287,7 @@ export function EditorJpg({ obraId, versao, tarefaId, nomeTarefa, jpgEditadoUrl,
       stage.scale({ x: 1, y: 1 })
       stage.position({ x: 0, y: 0 })
 
-      const exportParams: Parameters<typeof stage.toDataURL>[0] = { mimeType: "image/jpeg", quality: 0.92 }
+      const exportParams: Parameters<typeof stage.toDataURL>[0] = { mimeType: "image/jpeg", quality: 0.95, pixelRatio: 3 }
 
       if (recorte) {
         exportParams.x = recorte.largura < 0 ? recorte.x + recorte.largura : recorte.x

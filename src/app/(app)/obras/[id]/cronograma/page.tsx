@@ -81,6 +81,16 @@ export default async function CronogramaPage({ params }: { params: { id: string 
       tarefasIniciais={tarefasIniciais}
       versaoInicial={versaoInicial}
       dataFimObra={dataFimEfetiva}
+      dadosObra={{
+        cliente: obra.cliente,
+        cnpjCliente: obra.cnpjCliente,
+        cnpjObra: obra.cnpjObra,
+        cnoObra: obra.cnoObra,
+        dataInicio: obra.dataInicio?.toISOString() ?? null,
+        dataFim: obra.dataFim?.toISOString() ?? null,
+        escopo: obra.escopo,
+        valorContrato: obra.valorContrato ? Number(obra.valorContrato) : null,
+      }}
     />
   )
 }

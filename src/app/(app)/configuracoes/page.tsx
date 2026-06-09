@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { ChevronRight, BookOpen, Bell, BellOff, Mail, Loader2, CalendarDays } from "lucide-react"
+import { signOut } from "next-auth/react"
+import { ChevronRight, BookOpen, Bell, BellOff, Mail, Loader2, CalendarDays, LogOut, Tag } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -290,6 +291,26 @@ export default function ConfiguracoesPage() {
         </CardContent>
       </Card>
 
+      {/* Histórico de versões (ADMIN only) */}
+      {dados.perfil === "ADMIN" && (
+        <Link href="/configuracoes/historico">
+          <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+            <CardContent className="flex items-center justify-between py-4">
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
+                  <Tag className="h-4 w-4 text-amber-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-foreground">Histórico de Versões</p>
+                  <p className="text-xs text-muted-foreground">Atualizações e novidades do sistema</p>
+                </div>
+              </div>
+              <ChevronRight className="h-4 w-4 text-gray-400" />
+            </CardContent>
+          </Card>
+        </Link>
+      )}
+
       {/* Documentação */}
       <Link href="/configuracoes/documentacao">
         <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
@@ -421,6 +442,30 @@ export default function ConfiguracoesPage() {
 
           <Button onClick={salvarIdioma} disabled={salvandoIdioma} className="w-full">
             {salvandoIdioma ? t(idiomaCtx, "salvando") : t(idiomaCtx, "salvarIdiomaBtn")}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Sair */}
+      <Card className="border-red-100">
+        <CardContent className="flex items-center justify-between py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center">
+              <LogOut className="h-4 w-4 text-red-500" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">Sair da conta</p>
+              <p className="text-xs text-muted-foreground">Encerrar sessão atual</p>
+            </div>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            className="border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700"
+            onClick={() => signOut({ callbackUrl: "/login" })}
+          >
+            <LogOut className="h-4 w-4 mr-1.5" />
+            Sair
           </Button>
         </CardContent>
       </Card>

@@ -15,6 +15,8 @@ import {
   Image,
   ChevronDown,
   ChevronUp,
+  Mail,
+  Send,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -182,6 +184,28 @@ export function TraduzidasView({ obraId, nomeObra, versao, tarefasIniciais, pode
   const [salvandoEdicao, setSalvandoEdicao] = useState(false)
   const [erroEdicao, setErroEdicao] = useState<string | null>(null)
 
+  const [modalEmail, setModalEmail] = useState(false)
+  const [destinatario, setDestinatario] = useState("")
+  const [enviandoEmail, setEnviandoEmail] = useState(false)
+  const [mensagemEmail, setMensagemEmail] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null)
+
+  async function enviarPorEmail() {
+    setEnviandoEmail(true)
+    setMensagemEmail(null)
+    try {
+      const res = await fetch(`/api/obras/${obraId}/cronograma/${versao}/exportar-email`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ destinatario }),
+      })
+      const d = await res.json()
+      if (!res.ok) setMensagemEmail({ tipo: "erro", texto: d.erro ?? "Erro ao enviar" })
+      else setMensagemEmail({ tipo: "sucesso", texto: `Email enviado com ${d.total} tarefa${d.total !== 1 ? "s" : ""} para ${destinatario}` })
+    } finally {
+      setEnviandoEmail(false)
+    }
+  }
+
   const traduzidas = tarefas.filter((t) => t.nomeTraduzido)
 
   function abrirEdicao(tarefa: Tarefa) {
@@ -347,6 +371,12 @@ export function TraduzidasView({ obraId, nomeObra, versao, tarefasIniciais, pode
             <FileDown className="h-4 w-4 mr-1.5" />
             PDF
           </Button>
+          {podeEditar && (
+            <Button size="sm" variant="outline" onClick={() => { setModalEmail(true); setMensagemEmail(null) }} disabled={traduzidas.length === 0}>
+              <Mail className="h-4 w-4 mr-1.5" />
+              Email
+            </Button>
+          )}
           <div className="flex items-center gap-1 border rounded-md p-0.5 bg-gray-50">
             <button
               onClick={() => setVisualizacao("lista")}
@@ -537,6 +567,44 @@ export function TraduzidasView({ obraId, nomeObra, versao, tarefasIniciais, pode
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Enviar por e-mail */}
+      <Dialog open={modalEmail} onOpenChange={(open) => { if (!open) { setModalEmail(false); setMensagemEmail(null) } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-blue-600" />
+              Enviar cronograma por e-mail
+            </DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 mt-1">
+            <p className="text-sm text-gray-600">
+              Enviar <strong>{traduzidas.length} tarefas</strong> traduzidas em formato tabela para o e-mail abaixo:
+            </p>
+            <Input
+              type="email"
+              placeholder="destinatario@email.com"
+              value={destinatario}
+              onChange={(e) => setDestinatario(e.target.value)}
+              disabled={enviandoEmail}
+            />
+            {mensagemEmail && (
+              <p className={`text-sm ${mensagemEmail.tipo === "sucesso" ? "text-green-600" : "text-red-600"}`}>
+                {mensagemEmail.texto}
+              </p>
+            )}
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={() => setModalEmail(false)} disabled={enviandoEmail}>
+                Cancelar
+              </Button>
+              <Button size="sm" onClick={enviarPorEmail} disabled={enviandoEmail || !destinatario.trim()}>
+                {enviandoEmail ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Send className="h-4 w-4 mr-1.5" />}
+                {enviandoEmail ? "Enviando..." : "Enviar"}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

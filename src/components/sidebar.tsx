@@ -3,10 +3,11 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { Building2, Users, LogOut, HardHat, Settings, LayoutDashboard, Search } from "lucide-react"
+import { Building2, Users, LogOut, HardHat, Settings, LayoutDashboard, Search, Menu, X, Lightbulb } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { useIdioma } from "@/contexts/idioma-context"
 import { t } from "@/lib/i18n"
+import { useState } from "react"
 
 interface SidebarProps {
   perfil: string
@@ -29,6 +30,7 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
       ? [{ href: "/admin/usuarios", label: t(idioma, "usuarios"), icon: Users }]
       : []),
     { href: "/busca", label: "Busca", icon: Search },
+    { href: "/sugestoes", label: "Sugestões", icon: Lightbulb },
     { href: "/configuracoes", label: t(idioma, "configuracoes"), icon: Settings },
   ]
 
@@ -82,44 +84,116 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
   )
 }
 
-export function MobileHeader({ perfil }: { perfil: string; nome: string }) {
+export function MobileHeader({ perfil, nome }: { perfil: string; nome: string }) {
   const { idioma } = useIdioma()
+  const pathname = usePathname()
+  const [menuAberto, setMenuAberto] = useState(false)
 
   const navLinks = [
     ...(perfil === "PRODUCAO"
-      ? [{ href: "/dashboard", label: t(idioma, "dashboard") }]
-      : [{ href: "/visao-geral", label: t(idioma, "visaoGeral") }]),
+      ? [{ href: "/dashboard", label: t(idioma, "dashboard"), icon: LayoutDashboard }]
+      : [{ href: "/visao-geral", label: t(idioma, "visaoGeral"), icon: LayoutDashboard }]),
     ...(perfil !== "PRODUCAO"
-      ? [{ href: "/obras", label: t(idioma, "obras") }]
-      : [{ href: "/tarefas", label: t(idioma, "tarefasMenu") }]),
-    ...(perfil === "ADMIN" ? [{ href: "/admin/usuarios", label: t(idioma, "usuarios") }] : []),
-    { href: "/busca", label: "Busca" },
-    { href: "/configuracoes", label: t(idioma, "configuracoes") },
+      ? [{ href: "/obras", label: t(idioma, "obras"), icon: Building2 }]
+      : [{ href: "/tarefas", label: t(idioma, "tarefasMenu"), icon: HardHat }]),
+    ...(perfil === "ADMIN" ? [{ href: "/admin/usuarios", label: t(idioma, "usuarios"), icon: Users }] : []),
+    { href: "/busca", label: "Busca", icon: Search },
+    { href: "/sugestoes", label: "Sugestões", icon: Lightbulb },
+    { href: "/configuracoes", label: t(idioma, "configuracoes"), icon: Settings },
   ]
 
   return (
-    <header className="md:hidden bg-stone-900 border-b border-stone-800 px-4 py-3 flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <div className="w-5 h-5 bg-amber-600 flex items-center justify-center shrink-0">
-          <span className="text-white font-bold text-[10px] leading-none">A</span>
+    <>
+      {/* Header topo */}
+      <header className="md:hidden bg-stone-900 border-b border-stone-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+        <div className="flex items-center gap-2">
+          <div className="w-6 h-6 bg-amber-600 flex items-center justify-center shrink-0">
+            <span className="text-white font-bold text-xs leading-none">A</span>
+          </div>
+          <span className="text-stone-100 font-semibold tracking-[0.09em] uppercase text-xs">
+            Avantere
+          </span>
         </div>
-        <span className="text-stone-100 font-semibold tracking-[0.09em] uppercase text-xs">
-          Avantere
-        </span>
-      </div>
-      <div className="flex items-center gap-4">
-        {navLinks.map(({ href, label }) => (
-          <Link key={href} href={href} className="text-xs text-stone-400 hover:text-stone-200 transition-colors">
-            {label}
-          </Link>
-        ))}
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
-          className="text-xs text-stone-600 hover:text-amber-400 transition-colors"
+          onClick={() => setMenuAberto((v) => !v)}
+          className="text-stone-400 hover:text-stone-100 transition-colors p-1"
         >
-          {t(idioma, "sair")}
+          {menuAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
-      </div>
-    </header>
+      </header>
+
+      {/* Menu lateral deslizante */}
+      {menuAberto && (
+        <>
+          <div
+            className="md:hidden fixed inset-0 bg-black/50 z-40"
+            onClick={() => setMenuAberto(false)}
+          />
+          <div className="md:hidden fixed top-0 right-0 h-full w-64 bg-stone-900 z-50 flex flex-col shadow-2xl">
+            <div className="px-5 pt-6 pb-5 border-b border-stone-800 flex items-center justify-between">
+              <div>
+                <p className="text-sm font-semibold text-stone-100">{nome}</p>
+                <p className="text-xs text-stone-500 mt-0.5 capitalize">{perfil.toLowerCase()}</p>
+              </div>
+              <button onClick={() => setMenuAberto(false)} className="text-stone-500 hover:text-stone-200">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <nav className="flex-1 px-3 py-4 space-y-px overflow-y-auto">
+              {navLinks.map(({ href, label, icon: Icon }) => {
+                const active = pathname === href || pathname.startsWith(href + "/")
+                return (
+                  <Link
+                    key={href}
+                    href={href}
+                    onClick={() => setMenuAberto(false)}
+                    className={cn(
+                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all",
+                      active
+                        ? "bg-stone-800 text-amber-400"
+                        : "text-stone-400 hover:text-stone-200 hover:bg-stone-800/50"
+                    )}
+                  >
+                    <Icon className="h-5 w-5 shrink-0" />
+                    {label}
+                  </Link>
+                )
+              })}
+            </nav>
+            <div className="px-3 py-4 border-t border-stone-800">
+              <button
+                onClick={() => signOut({ callbackUrl: "/login" })}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-stone-400 hover:text-amber-400 hover:bg-stone-800/50 transition-all w-full"
+              >
+                <LogOut className="h-5 w-5 shrink-0" />
+                {t(idioma, "sair")}
+              </button>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Bottom navigation bar */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-stone-900 border-t border-stone-800 z-30 safe-area-bottom">
+        <div className="flex items-center justify-around px-2 py-1">
+          {navLinks.slice(0, 5).map(({ href, label, icon: Icon }) => {
+            const active = pathname === href || pathname.startsWith(href + "/")
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={cn(
+                  "flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg transition-all min-w-[52px]",
+                  active ? "text-amber-400" : "text-stone-500 hover:text-stone-300"
+                )}
+              >
+                <Icon className="h-5 w-5" />
+                <span className="text-[9px] font-medium leading-none">{label.split(" ")[0]}</span>
+              </Link>
+            )
+          })}
+        </div>
+      </nav>
+    </>
   )
 }

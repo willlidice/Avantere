@@ -43,6 +43,7 @@ import {
   ChevronUp,
   AlertTriangle,
   PlusCircle,
+  Maximize2,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -129,6 +130,17 @@ function truncarTexto(texto: string, maxPalavras = 5): string {
   return palavras.slice(0, maxPalavras).join(" ") + "…"
 }
 
+interface DadosObra {
+  cliente?: string | null
+  cnpjCliente?: string | null
+  cnpjObra?: string | null
+  cnoObra?: string | null
+  dataInicio?: string | null
+  dataFim?: string | null
+  escopo?: string | null
+  valorContrato?: number | null
+}
+
 interface Props {
   obraId: number
   nomeObra: string
@@ -138,6 +150,7 @@ interface Props {
   tarefasIniciais: Tarefa[]
   versaoInicial: number | null
   dataFimObra?: string | null
+  dadosObra?: DadosObra
 }
 
 function formatarData(iso: string) {
@@ -178,6 +191,7 @@ export function CronogramaView({
   tarefasIniciais,
   versaoInicial,
   dataFimObra,
+  dadosObra,
 }: Props) {
   const [cronogramas, setCronogramas] = useState(cronogramasIniciais)
   const [versaoSelecionada, setVersaoSelecionada] = useState<number | null>(versaoInicial)
@@ -219,6 +233,7 @@ export function CronogramaView({
   const [deletandoTarefaId, setDeletandoTarefaId] = useState<number | null>(null)
   const [mostrarExportar, setMostrarExportar] = useState(false)
   const [tarefaDetalhe, setTarefaDetalhe] = useState<Tarefa | null>(null)
+  const [detalheExpandido, setDetalheExpandido] = useState(false)
   const [detalheImagemIdx, setDetalheImagemIdx] = useState(0)
   // Dependências (antecessoras/predecessoras)
   const [relacoesTarefa, setRelacoesTarefa] = useState<{
@@ -979,7 +994,7 @@ export function CronogramaView({
 
       {/* Header */}
       <div className="flex items-start justify-between gap-4">
-        <div>
+        <div className="flex-1 min-w-0">
           <Link
             href="/obras"
             className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-2"
@@ -989,6 +1004,35 @@ export function CronogramaView({
           </Link>
           <h1 className="text-2xl font-bold text-gray-900">{t(idioma, "cronograma")}</h1>
           <p className="text-sm text-gray-500 mt-0.5">{nomeObra}</p>
+          {dadosObra && (dadosObra.cnpjObra || dadosObra.cliente || dadosObra.cnpjCliente || dadosObra.cnoObra || dadosObra.valorContrato) && (
+            <div className="flex flex-wrap gap-3 mt-2">
+              {dadosObra.cnpjObra && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                  CNPJ Obra: <strong>{dadosObra.cnpjObra}</strong>
+                </span>
+              )}
+              {dadosObra.cnoObra && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                  CNO: <strong>{dadosObra.cnoObra}</strong>
+                </span>
+              )}
+              {dadosObra.cliente && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                  Cliente: <strong>{dadosObra.cliente}</strong>
+                </span>
+              )}
+              {dadosObra.cnpjCliente && (
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                  CNPJ Cliente: <strong>{dadosObra.cnpjCliente}</strong>
+                </span>
+              )}
+              {dadosObra.valorContrato != null && (
+                <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                  Contrato: <strong>{dadosObra.valorContrato.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>
+                </span>
+              )}
+            </div>
+          )}
         </div>
         <div className="flex items-center gap-2">
           {podeEditar && (
@@ -1749,14 +1793,21 @@ export function CronogramaView({
       <Dialog
         open={!!tarefaDetalhe}
         onOpenChange={(open) => {
-          if (!open) { setTarefaDetalhe(null); setComentariosDetalhe([]); setNovoComentario("") }
+          if (!open) { setTarefaDetalhe(null); setComentariosDetalhe([]); setNovoComentario(""); setDetalheExpandido(false) }
         }}
       >
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className={detalheExpandido ? "max-w-4xl max-h-[96vh] overflow-y-auto" : "max-w-2xl max-h-[90vh] overflow-y-auto"}>
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Languages className="h-5 w-5 text-blue-600 shrink-0" />
-              <span className="truncate">{tarefaDetalhe?.nome}</span>
+              <span className="truncate flex-1">{tarefaDetalhe?.nome}</span>
+              <button
+                onClick={() => setDetalheExpandido((v) => !v)}
+                className="ml-auto text-gray-400 hover:text-gray-700 transition-colors shrink-0"
+                title={detalheExpandido ? "Recolher" : "Expandir"}
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
             </DialogTitle>
           </DialogHeader>
           {tarefaDetalhe && (() => {
@@ -1946,9 +1997,21 @@ export function CronogramaView({
                   </div>
                 )}
 
-                {/* Ações para ADMIN/GESTAO */}
+                {/* Ações — botão de foto visível a TODOS os perfis */}
                 <div className="flex items-center justify-between pt-1 border-t">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {/* Adicionar Foto — todos os perfis */}
+                    <Button
+                      size="sm"
+                      className="bg-amber-500 hover:bg-amber-600 text-white gap-1.5"
+                      onClick={() => {
+                        setTarefaDetalhe(null)
+                        abrirGaleria(tarefaDetalhe)
+                      }}
+                    >
+                      <Camera className="h-3.5 w-3.5" />
+                      Adicionar Foto
+                    </Button>
                     {podeEditar && (
                       <>
                         <Button
@@ -1961,17 +2024,6 @@ export function CronogramaView({
                         >
                           <Edit className="h-3.5 w-3.5 mr-1.5" />
                           Editar
-                        </Button>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setTarefaDetalhe(null)
-                            abrirGaleria(tarefaDetalhe)
-                          }}
-                        >
-                          <Images className="h-3.5 w-3.5 mr-1.5" />
-                          Imagens
                         </Button>
                         {versaoSelecionada && (
                           <Link

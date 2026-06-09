@@ -13,8 +13,6 @@ async function verificarAcesso(
   versao: number,
   tarefaId: number,
 ) {
-  if (perfil === "PRODUCAO") return null
-
   if (perfil === "GESTAO") {
     const vinculo = await prisma.obraUser.findFirst({
       where: { obraId, userId },
