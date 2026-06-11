@@ -3,7 +3,7 @@ FROM node:20-alpine AS source
 WORKDIR /src
 RUN apk add --no-cache git
 # Atualizar o sufixo a cada deploy para forçar novo clone
-RUN echo "bust-20260611-003" && \
+RUN echo "bust-20260611-004" && \
     git clone --depth 1 --branch master https://github.com/willlidice/Avantere .
 
 # ── 2. Dependências ───────────────────────────────────────────────────────────
@@ -29,19 +29,16 @@ ENV NODE_ENV=production \
     PORT=3000 \
     HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser  --system --uid  1001 nextjs
-
 # Aplicação Next.js standalone
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
-COPY --from=builder                        /app/public           ./public
+COPY --from=builder /app/.next/standalone ./
+COPY --from=builder /app/.next/static     ./.next/static
+COPY --from=builder /app/public           ./public
 
 # Prisma: schema + migrations + cliente gerado
-COPY --from=builder --chown=nextjs:nodejs /app/prisma               ./prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=deps    --chown=nextjs:nodejs /app/node_modules/prisma  ./node_modules/prisma
-COPY --from=deps    --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder /app/prisma               ./prisma
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=deps    /app/node_modules/prisma  ./node_modules/prisma
+COPY --from=deps    /app/node_modules/@prisma ./node_modules/@prisma
 
 # Entrypoint: roda migrate deploy antes de iniciar (idempotente)
 RUN echo '#!/bin/sh'                                                     >  /app/entrypoint.sh && \
@@ -50,6 +47,5 @@ RUN echo '#!/bin/sh'                                                     >  /app
     echo 'exec node /app/server.js'                                      >> /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
-USER nextjs
 EXPOSE 3000
 ENTRYPOINT ["/app/entrypoint.sh"]
