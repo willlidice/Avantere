@@ -44,6 +44,8 @@ import {
   AlertTriangle,
   PlusCircle,
   Maximize2,
+  MoreHorizontal,
+  Target,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -116,7 +118,10 @@ interface Tarefa {
   jpgEditadoUrl: string | null
   responsavel: string | null
   statusManual: string | null
+  percentualConcluido: number
   dataConclusaoReal?: string | null
+  inicioBaseline?: string | null
+  fimBaseline?: string | null
   imagens: TarefaImagem[]
 }
 
@@ -202,6 +207,9 @@ export function CronogramaView({
   const [enviando, setEnviando] = useState(false)
   const [arquivo, setArquivo] = useState<File | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [enviandoMs, setEnviandoMs] = useState(false)
+  const [arquivoMs, setArquivoMs] = useState<File | null>(null)
+  const inputMsRef = useRef<HTMLInputElement>(null)
   const [traduzindo, setTraduzindo] = useState(false)
   const [traducaoMensagem, setTraducaoMensagem] = useState<{ tipo: "sucesso" | "erro"; texto: string } | null>(null)
   const [filtro, setFiltro] = useState<Filtro>("todas")
@@ -232,6 +240,8 @@ export function CronogramaView({
   const [tarefaParaDeletar, setTarefaParaDeletar] = useState<Tarefa | null>(null)
   const [deletandoTarefaId, setDeletandoTarefaId] = useState<number | null>(null)
   const [mostrarExportar, setMostrarExportar] = useState(false)
+  const [mostrarImportar, setMostrarImportar] = useState(false)
+  const [mostrarMais, setMostrarMais] = useState(false)
   const [tarefaDetalhe, setTarefaDetalhe] = useState<Tarefa | null>(null)
   const [detalheExpandido, setDetalheExpandido] = useState(false)
   const [detalheImagemIdx, setDetalheImagemIdx] = useState(0)
@@ -259,6 +269,9 @@ export function CronogramaView({
   // Resize colunas tabela (feature 6)
   const [colWidths, setColWidths] = useState<Record<string, number>>({ nome: 240, local: 120, responsavel: 120, inicio: 110, fim: 110 })
   const resizandoColRef = useRef<{ col: string; startX: number; startW: number } | null>(null)
+  // Relações do Gantt (setas SVG)
+  const [ganttRelacoes, setGanttRelacoes] = useState<{ antecessoraId: number; sucessoraId: number }[]>([])
+  const [definindoBaseline, setDefinindoBaseline] = useState(false)
 
   const podeEditar = perfil === "ADMIN" || perfil === "GESTAO"
 
@@ -366,6 +379,47 @@ export function CronogramaView({
     const saved = localStorage.getItem(`prompt_traducao_${obraId}`)
     if (saved) setPromptCustomizado(saved)
   }, [obraId])
+
+  useEffect(() => {
+    if (viewMode !== "gantt" || !versaoSelecionada) return
+    fetch(`/api/obras/${obraId}/cronograma/${versaoSelecionada}/relacoes`)
+      .then((r) => r.ok ? r.json() : [])
+      .then((data: { id: number; antecessoraId: number; sucessoraId: number }[]) =>
+        setGanttRelacoes(data.map((r) => ({ antecessoraId: r.antecessoraId, sucessoraId: r.sucessoraId })))
+      )
+      .catch(() => {})
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [viewMode, versaoSelecionada])
+
+  async function recarregarTarefas() {
+    if (!versaoSelecionada) return
+    const res = await fetch(`/api/obras/${obraId}/cronograma/${versaoSelecionada}`)
+    if (res.ok) {
+      const data = await res.json()
+      setTarefas(data.tarefas)
+    }
+  }
+
+  async function definirBaseline() {
+    if (!versaoSelecionada || tarefas.length === 0) return
+    setDefinindoBaseline(true)
+    try {
+      await Promise.all(
+        tarefas.map((tarefa) =>
+          fetch(`/api/obras/${obraId}/cronograma/${versaoSelecionada}/tarefas/${tarefa.id}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ inicioBaseline: tarefa.inicio, fimBaseline: tarefa.fim }),
+          })
+        )
+      )
+      setTarefas((prev) =>
+        prev.map((tarefa) => ({ ...tarefa, inicioBaseline: tarefa.inicio, fimBaseline: tarefa.fim }))
+      )
+    } finally {
+      setDefinindoBaseline(false)
+    }
+  }
 
   useEffect(() => {
     function onMouseMove(e: MouseEvent) {
@@ -885,6 +939,45 @@ export function CronogramaView({
     }
   }
 
+  async function enviarMsProject() {
+    if (!arquivoMs) return
+    setUploadErro(null)
+    setUploadSucesso(null)
+    setEnviandoMs(true)
+
+    const form = new FormData()
+    form.append("arquivo", arquivoMs)
+
+    try {
+      const res = await fetch(`/api/obras/${obraId}/cronograma/import-msproject`, {
+        method: "POST",
+        body: form,
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setUploadErro(data.erro ?? "Erro ao importar arquivo MS Project")
+      } else {
+        const novoResumo: CronogramaResumo = {
+          id: data.id,
+          versao: data.versao,
+          criadoEm: data.criadoEm,
+          _count: { tarefas: data.tarefas.length },
+        }
+        setCronogramas((prev) => [novoResumo, ...prev])
+        setVersaoSelecionada(data.versao)
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        setTarefas(data.tarefas.map((tarefa: any) => ({ ...tarefa, imagens: tarefa.imagens ?? [] })))
+        setSelecionadas(new Set())
+        setFiltro("todas")
+        setUploadSucesso(`Versão ${data.versao} importada do MS Project (${data.tarefas.length} tarefas)`)
+        setArquivoMs(null)
+        if (inputMsRef.current) inputMsRef.current.value = ""
+      }
+    } finally {
+      setEnviandoMs(false)
+    }
+  }
+
   async function traduzirTarefas() {
     if (!versaoSelecionada) return
     setTraduzindo(true)
@@ -992,112 +1085,135 @@ export function CronogramaView({
         </div>
       )}
 
-      {/* Header */}
-      <div className="flex items-start justify-between gap-4">
-        <div className="flex-1 min-w-0">
+      {/* ZONA A — Header */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div className="flex items-center gap-2.5 min-w-0 flex-1">
           <Link
             href="/obras"
-            className="inline-flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 mb-2"
+            className="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 shrink-0"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            {t(idioma, "obras")}
+            <ArrowLeft className="h-4 w-4" />
+            <span className="hidden sm:inline">{t(idioma, "obras")}</span>
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900">{t(idioma, "cronograma")}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{nomeObra}</p>
-          {dadosObra && (dadosObra.cnpjObra || dadosObra.cliente || dadosObra.cnpjCliente || dadosObra.cnoObra || dadosObra.valorContrato) && (
-            <div className="flex flex-wrap gap-3 mt-2">
-              {dadosObra.cnpjObra && (
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                  CNPJ Obra: <strong>{dadosObra.cnpjObra}</strong>
-                </span>
-              )}
-              {dadosObra.cnoObra && (
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                  CNO: <strong>{dadosObra.cnoObra}</strong>
-                </span>
-              )}
-              {dadosObra.cliente && (
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                  Cliente: <strong>{dadosObra.cliente}</strong>
-                </span>
-              )}
-              {dadosObra.cnpjCliente && (
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
-                  CNPJ Cliente: <strong>{dadosObra.cnpjCliente}</strong>
-                </span>
-              )}
-              {dadosObra.valorContrato != null && (
-                <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
-                  Contrato: <strong>{dadosObra.valorContrato.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>
-                </span>
-              )}
-            </div>
-          )}
+          <span className="text-gray-300 hidden sm:inline select-none">|</span>
+          <div className="min-w-0">
+            <h1 className="text-lg font-bold text-gray-900 truncate">
+              {t(idioma, "cronograma")} — {nomeObra}
+            </h1>
+            {dadosObra && (dadosObra.cnpjObra || dadosObra.cliente || dadosObra.cnpjCliente || dadosObra.cnoObra || dadosObra.valorContrato) && (
+              <div className="flex flex-wrap gap-2 mt-1">
+                {dadosObra.cnpjObra && (
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                    CNPJ Obra: <strong>{dadosObra.cnpjObra}</strong>
+                  </span>
+                )}
+                {dadosObra.cnoObra && (
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                    CNO: <strong>{dadosObra.cnoObra}</strong>
+                  </span>
+                )}
+                {dadosObra.cliente && (
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                    Cliente: <strong>{dadosObra.cliente}</strong>
+                  </span>
+                )}
+                {dadosObra.cnpjCliente && (
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded">
+                    CNPJ Cliente: <strong>{dadosObra.cnpjCliente}</strong>
+                  </span>
+                )}
+                {dadosObra.valorContrato != null && (
+                  <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                    Contrato: <strong>{dadosObra.valorContrato.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          {podeEditar && (
-            <>
-              {cronogramas.length >= 2 && (
-                <Link href={`/obras/${obraId}/cronograma/comparar`}>
-                  <Button variant="outline" size="sm">
-                    <GitCompare className="h-4 w-4 mr-2" />
-                    Comparar
-                  </Button>
-                </Link>
-              )}
-              <Link href={`/obras/${obraId}/historico`}>
-                <Button variant="outline" size="sm">
-                  <History className="h-4 w-4 mr-2" />
-                  Histórico
-                </Button>
-              </Link>
-            </>
+
+        <div className="flex items-center gap-2 shrink-0">
+          {podeEditar && cronogramas.length >= 2 && (
+            <Link href={`/obras/${obraId}/cronograma/comparar`}>
+              <Button variant="outline" size="sm" className="h-8">
+                <GitCompare className="h-3.5 w-3.5 mr-1.5" />
+                <span className="hidden sm:inline">Comparar</span>
+              </Button>
+            </Link>
           )}
-          <a href="/api/modelo-xlsx" download>
-            <Button variant="outline" size="sm">
-              <Download className="h-4 w-4 mr-2" />
-              {t(idioma, "modeloXlsx")}
+          {podeEditar && (
+            <Link href={`/obras/${obraId}/historico`}>
+              <Button variant="outline" size="sm" className="h-8">
+                <History className="h-3.5 w-3.5 mr-1.5" />
+                <span className="hidden sm:inline">Histórico</span>
+              </Button>
+            </Link>
+          )}
+          <div className="relative">
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-8 w-8 p-0"
+              title="Mais opções"
+              onClick={() => setMostrarMais((v) => !v)}
+            >
+              <MoreHorizontal className="h-4 w-4" />
             </Button>
-          </a>
+            {mostrarMais && (
+              <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-20 min-w-[220px] py-1">
+                <a
+                  href="/api/modelo-xlsx"
+                  download
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                  onClick={() => setMostrarMais(false)}
+                >
+                  <Download className="h-3.5 w-3.5 text-gray-400" />
+                  {t(idioma, "modeloXlsx")}
+                </a>
+                {podeEditar && (
+                  <button
+                    onClick={() => {
+                      setPromptRascunho(promptCustomizado)
+                      setModalPromptAberto(true)
+                      setMostrarMais(false)
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                  >
+                    <Settings className="h-3.5 w-3.5 text-gray-400" />
+                    Configurações de tradução
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Upload */}
-      {podeEditar && (
-        <div className="border rounded-lg p-4 bg-gray-50 space-y-3">
-          <p className="text-sm font-medium text-gray-700">{t(idioma, "importarVersao")}</p>
-          <div className="flex flex-wrap items-center gap-3">
-            <label className="cursor-pointer">
-              <input
-                ref={inputRef}
-                type="file"
-                accept=".xlsx"
-                className="sr-only"
-                onChange={(e) => {
-                  setArquivo(e.target.files?.[0] ?? null)
-                  setUploadErro(null)
-                  setUploadSucesso(null)
-                }}
-              />
-              <div className="flex items-center gap-2 px-3 py-2 border rounded-md bg-white text-sm hover:bg-gray-50 cursor-pointer">
-                <FileSpreadsheet className="h-4 w-4 text-green-600" />
-                {arquivo ? arquivo.name : t(idioma, "selecionarXlsx")}
-              </div>
-            </label>
-            <Button size="sm" disabled={!arquivo || enviando} onClick={enviarArquivo}>
-              {enviando ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Upload className="h-4 w-4 mr-2" />}
-              {enviando ? t(idioma, "importando") : t(idioma, "importar")}
-            </Button>
-          </div>
-          {uploadErro && (
-            <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{uploadErro}</p>
-          )}
-          {uploadSucesso && (
-            <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">{uploadSucesso}</p>
-          )}
-          <p className="text-xs text-gray-400">{t(idioma, "colunasObrigatorias")}</p>
-        </div>
-      )}
+      {/* Input oculto para import XLSX */}
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".xlsx"
+        className="sr-only"
+        onChange={(e) => {
+          setArquivo(e.target.files?.[0] ?? null)
+          setUploadErro(null)
+          setUploadSucesso(null)
+        }}
+      />
+
+      {/* Input oculto para import MS Project */}
+      <input
+        ref={inputMsRef}
+        type="file"
+        accept=".xml"
+        className="sr-only"
+        onChange={(e) => {
+          setArquivoMs(e.target.files?.[0] ?? null)
+          setUploadErro(null)
+          setUploadSucesso(null)
+        }}
+      />
 
       {/* Sem cronograma */}
       {cronogramas.length === 0 && (
@@ -1111,168 +1227,237 @@ export function CronogramaView({
       {/* Versões + tarefas */}
       {cronogramas.length > 0 && (
         <div className="space-y-4">
-          {/* Linha: versão + ações */}
-          <div className="flex items-center justify-between gap-4 flex-wrap">
-            <div className="flex items-center gap-3 flex-wrap">
-              <span className="text-sm text-gray-600">{t(idioma, "versao")}:</span>
-              <Select value={String(versaoSelecionada)} onValueChange={mudarVersao}>
-                <SelectTrigger className="w-52">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {cronogramas.map((c) => (
-                    <SelectItem key={c.id} value={String(c.versao)}>
-                      {`v${c.versao} — ${c._count.tarefas} tarefas`}
-                      <span className="text-gray-400 text-xs ml-1">
-                        ({new Date(c.criadoEm).toLocaleDateString("pt-BR")})
-                      </span>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {cronogramaAtual && (
-                <Badge variant="secondary">{cronogramaAtual._count.tarefas} tarefas</Badge>
-              )}
-              {/* Toggle lista/gantt */}
-              {tarefas.length > 0 && (
-                <div className="flex border rounded-md overflow-hidden">
-                  <button
-                    onClick={() => setViewMode("lista")}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 text-xs transition-colors ${viewMode === "lista" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
-                  >
-                    <List className="h-3.5 w-3.5" />
-                    Lista
-                  </button>
-                  <button
-                    onClick={() => setViewMode("gantt")}
-                    className={`flex items-center gap-1 px-2.5 py-1.5 text-xs transition-colors ${viewMode === "gantt" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
-                  >
-                    <BarChart2 className="h-3.5 w-3.5" />
-                    Gantt
-                  </button>
-                </div>
-              )}
-            </div>
+          {/* ZONA B — Barra de ações primárias */}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* Seletor de versão */}
+            <Select value={String(versaoSelecionada)} onValueChange={mudarVersao}>
+              <SelectTrigger className="w-52 h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {cronogramas.map((c) => (
+                  <SelectItem key={c.id} value={String(c.versao)}>
+                    {`v${c.versao} — ${c._count.tarefas} tarefas`}
+                    <span className="text-gray-400 text-xs ml-1">
+                      ({new Date(c.criadoEm).toLocaleDateString("pt-BR")})
+                    </span>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
-            <div className="flex items-center gap-2 flex-wrap">
-              {/* Traduzir */}
-              {podeEditar && labelTraduzir && (
-                <div className="flex items-center gap-1">
-                  <Button size="sm" variant="outline" disabled={traduzindo} onClick={traduzirTarefas}>
-                    {traduzindo ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <Languages className="h-4 w-4 mr-2" />}
-                    {traduzindo ? t(idioma, "traduzindo") : labelTraduzir}
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-8 w-8 p-0"
-                    title="Configurar prompt de tradução"
-                    onClick={() => { setPromptRascunho(promptCustomizado); setModalPromptAberto(true) }}
-                  >
-                    <Settings className="h-4 w-4 text-gray-400" />
-                  </Button>
-                </div>
-              )}
+            {/* Toggle Lista | Gantt */}
+            {tarefas.length > 0 && (
+              <div className="flex border rounded-md overflow-hidden h-9">
+                <button
+                  onClick={() => setViewMode("lista")}
+                  className={`flex items-center gap-1.5 px-3 text-sm transition-colors ${viewMode === "lista" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                >
+                  <List className="h-3.5 w-3.5" />
+                  Lista
+                </button>
+                <button
+                  onClick={() => setViewMode("gantt")}
+                  className={`flex items-center gap-1.5 px-3 text-sm transition-colors ${viewMode === "gantt" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                >
+                  <BarChart2 className="h-3.5 w-3.5" />
+                  Gantt
+                </button>
+              </div>
+            )}
 
-              {/* Nova tarefa manual */}
-              {podeEditar && versaoSelecionada && (
+            <div className="h-6 w-px bg-gray-200" />
+
+            {/* + Adicionar Tarefa */}
+            {podeEditar && versaoSelecionada && (
+              <Button
+                size="sm"
+                className="h-9 bg-amber-500 hover:bg-amber-600 text-white font-semibold shadow-sm"
+                onClick={() => {
+                  setFormNovaTarefa({ idExterno: "", nome: "", local: "", quantidade: "1", unidade: "un", inicio: "", fim: "", responsavel: "" })
+                  setErroNovaTarefa(null)
+                  setModalNovaTarefaAberto(true)
+                }}
+              >
+                <Plus className="h-4 w-4 mr-1.5" />
+                Adicionar
+              </Button>
+            )}
+
+            {/* ↑ Importar dropdown */}
+            {podeEditar && (
+              <div className="relative">
                 <Button
                   size="sm"
                   variant="outline"
-                  onClick={() => {
-                    setFormNovaTarefa({ idExterno: "", nome: "", local: "", quantidade: "1", unidade: "un", inicio: "", fim: "", responsavel: "" })
-                    setErroNovaTarefa(null)
-                    setModalNovaTarefaAberto(true)
-                  }}
+                  className="h-9"
+                  onClick={() => setMostrarImportar((v) => !v)}
                 >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Tarefa
+                  <Upload className="h-4 w-4 mr-1.5" />
+                  Importar
+                  <ChevronDown className="h-3.5 w-3.5 ml-1" />
                 </Button>
-              )}
+                {mostrarImportar && (
+                  <div className="absolute left-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-20 min-w-[220px] py-1">
+                    <button
+                      onClick={() => { setMostrarImportar(false); inputRef.current?.click() }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                    >
+                      <FileSpreadsheet className="h-3.5 w-3.5 text-green-600" />
+                      Excel (.xlsx)
+                    </button>
+                    <button
+                      onClick={() => { setMostrarImportar(false); inputMsRef.current?.click() }}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                    >
+                      <FileDown className="h-3.5 w-3.5 text-blue-600 shrink-0" />
+                      <div className="flex flex-col">
+                        <span>MS Project (.xml)</span>
+                        <span className="text-[11px] text-gray-400 font-normal">No MS Project: Arquivo → Salvar como → XML</span>
+                      </div>
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
 
-              {/* Exportar */}
-              {tarefas.length > 0 && (
-                <div className="relative">
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => setMostrarExportar((v) => !v)}
-                  >
-                    <FileDown className="h-4 w-4 mr-2" />
-                    {t(idioma, "exportar")}
-                    <ChevronDown className="h-3.5 w-3.5 ml-1" />
-                  </Button>
-                  {mostrarExportar && (
-                    <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-20 min-w-[200px] py-1">
-                      <button
-                        onClick={() => exportarXLSX(false)}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <FileSpreadsheet className="h-3.5 w-3.5 text-green-600" />
-                        {t(idioma, "exportarXlsxOriginal")}
-                      </button>
-                      {tarefasTraduzidas.length > 0 && (
-                        <button
-                          onClick={() => exportarXLSX(true)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FileSpreadsheet className="h-3.5 w-3.5 text-blue-600" />
-                          {t(idioma, "exportarXlsxTraduzido")}
-                        </button>
-                      )}
-                      <div className="h-px bg-gray-100 my-1" />
-                      <button
-                        onClick={() => exportarPDF(false)}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <FileDown className="h-3.5 w-3.5 text-red-500" />
-                        {t(idioma, "exportarPdfOriginal")}
-                      </button>
-                      {tarefasTraduzidas.length > 0 && (
-                        <button
-                          onClick={() => exportarPDF(true)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <FileDown className="h-3.5 w-3.5 text-indigo-500" />
-                          {t(idioma, "exportarPdfTraduzido")}
-                        </button>
-                      )}
-                      <div className="h-px bg-gray-100 my-1" />
-                      <button
-                        onClick={() => exportarGantt(false)}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
-                      >
-                        <CalendarRange className="h-3.5 w-3.5 text-teal-500" />
-                        Gantt PDF (original)
-                      </button>
-                      {tarefasTraduzidas.length > 0 && (
-                        <button
-                          onClick={() => exportarGantt(true)}
-                          className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
-                        >
-                          <CalendarRange className="h-3.5 w-3.5 text-teal-700" />
-                          Gantt PDF (traduzido)
-                        </button>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
+            {/* Traduzir */}
+            {podeEditar && labelTraduzir && (
+              <Button size="sm" variant="outline" className="h-9" disabled={traduzindo} onClick={traduzirTarefas}>
+                {traduzindo ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Languages className="h-4 w-4 mr-1.5" />}
+                {traduzindo ? t(idioma, "traduzindo") : labelTraduzir}
+              </Button>
+            )}
 
-              {/* Zerar tarefas */}
-              {podeEditar && tarefas.length > 0 && (
+            {/* ↓ Exportar dropdown */}
+            {tarefas.length > 0 && (
+              <div className="relative">
                 <Button
                   size="sm"
                   variant="outline"
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                  onClick={() => setConfirmarZerar(true)}
+                  className="h-9"
+                  onClick={() => setMostrarExportar((v) => !v)}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  {t(idioma, "zerarTarefas")}
+                  <FileDown className="h-4 w-4 mr-1.5" />
+                  {t(idioma, "exportar")}
+                  <ChevronDown className="h-3.5 w-3.5 ml-1" />
                 </Button>
-              )}
-            </div>
+                {mostrarExportar && (
+                  <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-20 min-w-[200px] py-1">
+                    <button
+                      onClick={() => exportarXLSX(false)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <FileSpreadsheet className="h-3.5 w-3.5 text-green-600" />
+                      {t(idioma, "exportarXlsxOriginal")}
+                    </button>
+                    {tarefasTraduzidas.length > 0 && (
+                      <button
+                        onClick={() => exportarXLSX(true)}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <FileSpreadsheet className="h-3.5 w-3.5 text-blue-600" />
+                        {t(idioma, "exportarXlsxTraduzido")}
+                      </button>
+                    )}
+                    <div className="h-px bg-gray-100 my-1" />
+                    <button
+                      onClick={() => exportarPDF(false)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <FileDown className="h-3.5 w-3.5 text-red-500" />
+                      {t(idioma, "exportarPdfOriginal")}
+                    </button>
+                    {tarefasTraduzidas.length > 0 && (
+                      <button
+                        onClick={() => exportarPDF(true)}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <FileDown className="h-3.5 w-3.5 text-indigo-500" />
+                        {t(idioma, "exportarPdfTraduzido")}
+                      </button>
+                    )}
+                    <div className="h-px bg-gray-100 my-1" />
+                    <button
+                      onClick={() => exportarGantt(false)}
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                    >
+                      <CalendarRange className="h-3.5 w-3.5 text-teal-500" />
+                      Gantt PDF (original)
+                    </button>
+                    {tarefasTraduzidas.length > 0 && (
+                      <button
+                        onClick={() => exportarGantt(true)}
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                      >
+                        <CalendarRange className="h-3.5 w-3.5 text-teal-700" />
+                        Gantt PDF (traduzido)
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* ZONA C — Perigo, separado à direita */}
+            {podeEditar && tarefas.length > 0 && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 ml-auto text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                onClick={() => setConfirmarZerar(true)}
+              >
+                <Trash2 className="h-4 w-4 mr-1.5" />
+                {t(idioma, "zerarTarefas")}
+              </Button>
+            )}
           </div>
+
+          {/* Feedback de upload inline */}
+          {podeEditar && (arquivo || arquivoMs || uploadErro || uploadSucesso) && (
+            <div className="space-y-2">
+              {arquivo && (
+                <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
+                  <FileSpreadsheet className="h-4 w-4 text-blue-600 shrink-0" />
+                  <span className="text-sm text-blue-800 flex-1 truncate">{arquivo.name}</span>
+                  <span className="text-xs text-gray-400 hidden sm:inline shrink-0">{t(idioma, "colunasObrigatorias")}</span>
+                  <Button size="sm" disabled={enviando} onClick={enviarArquivo} className="shrink-0">
+                    {enviando ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+                    {enviando ? t(idioma, "importando") : t(idioma, "importar")}
+                  </Button>
+                  <button
+                    onClick={() => { setArquivo(null); if (inputRef.current) inputRef.current.value = "" }}
+                    className="text-gray-400 hover:text-gray-600 shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              {arquivoMs && (
+                <div className="flex items-center gap-3 bg-blue-50 border border-blue-200 rounded-lg px-4 py-2.5">
+                  <FileDown className="h-4 w-4 text-blue-600 shrink-0" />
+                  <span className="text-sm text-blue-800 flex-1 truncate">{arquivoMs.name}</span>
+                  <span className="text-xs text-gray-400 hidden sm:inline shrink-0">MS Project: Arquivo → Salvar como → XML</span>
+                  <Button size="sm" disabled={enviandoMs} onClick={enviarMsProject} className="shrink-0">
+                    {enviandoMs ? <Loader2 className="h-4 w-4 mr-1.5 animate-spin" /> : <Upload className="h-4 w-4 mr-1.5" />}
+                    {enviandoMs ? t(idioma, "importando") : t(idioma, "importar")}
+                  </Button>
+                  <button
+                    onClick={() => { setArquivoMs(null); if (inputMsRef.current) inputMsRef.current.value = "" }}
+                    className="text-gray-400 hover:text-gray-600 shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              )}
+              {uploadErro && (
+                <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">{uploadErro}</p>
+              )}
+              {uploadSucesso && (
+                <p className="text-sm text-green-700 bg-green-50 border border-green-200 rounded px-3 py-2">{uploadSucesso}</p>
+              )}
+            </div>
+          )}
 
           {/* Filtros + Ver traduzidas */}
           <div className="flex flex-wrap items-center gap-2">
@@ -1422,15 +1607,40 @@ export function CronogramaView({
 
               {/* Gantt interativo */}
               {viewMode === "gantt" && tarefasOrdenadas.length > 0 && (
-                <GanttInterativo
-                  tarefas={tarefasOrdenadas}
-                  podeEditar={podeEditar}
-                  obraId={obraId}
-                  versao={versaoSelecionada!}
-                  onAtualizar={(id, inicio, fim) => {
-                    setTarefas((prev) => prev.map((t) => t.id === id ? { ...t, inicio, fim } : t))
-                  }}
-                />
+                <>
+                  {podeEditar && (
+                    <div className="flex justify-end mb-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8"
+                        disabled={definindoBaseline}
+                        onClick={definirBaseline}
+                        title="Salva as datas atuais de todas as tarefas como referência de baseline"
+                      >
+                        {definindoBaseline
+                          ? <Loader2 className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                          : <Target className="h-3.5 w-3.5 mr-1.5" />
+                        }
+                        {definindoBaseline ? "Salvando..." : "Definir Baseline"}
+                      </Button>
+                    </div>
+                  )}
+                  <GanttInterativo
+                    tarefas={tarefasOrdenadas}
+                    relacoes={ganttRelacoes}
+                    podeEditar={podeEditar}
+                    obraId={obraId}
+                    versao={versaoSelecionada!}
+                    onAtualizar={(updates) => {
+                      setTarefas((prev) => prev.map((t) => {
+                        const u = updates.find((u) => u.id === t.id)
+                        return u ? { ...t, inicio: u.inicio, fim: u.fim } : t
+                      }))
+                    }}
+                    onRecarregar={recarregarTarefas}
+                  />
+                </>
               )}
 
               {/* Desktop table */}
@@ -1554,15 +1764,18 @@ export function CronogramaView({
                               <TableCell className="text-gray-400 text-xs">{tarefa.ordem}</TableCell>
                               <TableCell className="text-xs font-mono">{tarefa.idExterno}</TableCell>
                               <TableCell>
-                                <p className="font-medium text-sm">{tarefa.nome}</p>
+                                <button
+                                  onClick={() => { setTarefaDetalhe(tarefa); setDetalheImagemIdx(0) }}
+                                  className="font-medium text-sm text-left hover:text-amber-700 hover:underline transition-colors"
+                                  title="Ver detalhes da tarefa"
+                                >
+                                  {tarefa.nome}
+                                </button>
                                 {tarefa.nomeTraduzido && (
-                                  <button
-                                    onClick={() => { setTarefaDetalhe(tarefa); setDetalheImagemIdx(0) }}
-                                    className="text-xs text-blue-600 hover:text-blue-800 hover:underline text-left flex items-center gap-1 mt-0.5"
-                                    title={tarefa.nomeTraduzido}
-                                  >
+                                  <p className="text-xs text-blue-600 mt-0.5 flex items-center gap-1">
+                                    <Languages className="h-3 w-3 shrink-0" />
                                     {truncarTexto(tarefa.nomeTraduzido)}
-                                  </button>
+                                  </p>
                                 )}
                               </TableCell>
 
@@ -1693,15 +1906,18 @@ export function CronogramaView({
                             />
                           )}
                           <div className="flex-1 min-w-0">
-                            <p className="font-medium text-sm text-gray-900 truncate">{tarefa.nome}</p>
+                            <button
+                              onClick={() => { setTarefaDetalhe(tarefa); setDetalheImagemIdx(0) }}
+                              className="font-medium text-sm text-gray-900 text-left hover:text-amber-700 transition-colors w-full truncate block"
+                              title="Ver detalhes da tarefa"
+                            >
+                              {tarefa.nome}
+                            </button>
                             {tarefa.nomeTraduzido && (
-                              <button
-                                onClick={() => { setTarefaDetalhe(tarefa); setDetalheImagemIdx(0) }}
-                                className="text-xs text-blue-600 hover:text-blue-800 hover:underline text-left"
-                                title={tarefa.nomeTraduzido}
-                              >
+                              <p className="text-xs text-blue-600 mt-0.5 flex items-center gap-1">
+                                <Languages className="h-3 w-3 shrink-0" />
                                 {truncarTexto(tarefa.nomeTraduzido)}
-                              </button>
+                              </p>
                             )}
                           </div>
                         </div>
@@ -1784,9 +2000,9 @@ export function CronogramaView({
         </div>
       )}
 
-      {/* Fechar dropdown exportar ao clicar fora */}
-      {mostrarExportar && (
-        <div className="fixed inset-0 z-10" onClick={() => setMostrarExportar(false)} />
+      {/* Fechar dropdowns ao clicar fora */}
+      {(mostrarExportar || mostrarImportar || mostrarMais) && (
+        <div className="fixed inset-0 z-10" onClick={() => { setMostrarExportar(false); setMostrarImportar(false); setMostrarMais(false) }} />
       )}
 
       {/* Modal: Detalhes da tradução */}
@@ -1796,18 +2012,18 @@ export function CronogramaView({
           if (!open) { setTarefaDetalhe(null); setComentariosDetalhe([]); setNovoComentario(""); setDetalheExpandido(false) }
         }}
       >
-        <DialogContent className={detalheExpandido ? "max-w-4xl max-h-[96vh] overflow-y-auto" : "max-w-2xl max-h-[90vh] overflow-y-auto"}>
+        <DialogContent className={detalheExpandido ? "sm:max-w-5xl max-h-[95vh] overflow-y-auto" : "sm:max-w-3xl max-h-[92vh] overflow-y-auto"}>
+          <button
+            onClick={() => setDetalheExpandido((v) => !v)}
+            className="absolute top-2 right-10 z-10 p-1.5 text-gray-400 hover:text-gray-700 transition-colors rounded"
+            title={detalheExpandido ? "Recolher" : "Expandir"}
+          >
+            <Maximize2 className="h-4 w-4" />
+          </button>
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2 text-base">
+            <DialogTitle className="flex items-center gap-2 text-base pr-16">
               <Languages className="h-5 w-5 text-blue-600 shrink-0" />
-              <span className="truncate flex-1">{tarefaDetalhe?.nome}</span>
-              <button
-                onClick={() => setDetalheExpandido((v) => !v)}
-                className="ml-auto text-gray-400 hover:text-gray-700 transition-colors shrink-0"
-                title={detalheExpandido ? "Recolher" : "Expandir"}
-              >
-                <Maximize2 className="h-4 w-4" />
-              </button>
+              <span className="truncate">{tarefaDetalhe?.nome}</span>
             </DialogTitle>
           </DialogHeader>
           {tarefaDetalhe && (() => {
@@ -1997,10 +2213,67 @@ export function CronogramaView({
                   </div>
                 )}
 
+                {/* Comentários */}
+                <div className="border-t pt-4 space-y-3">
+                  <p className="text-xs font-semibold text-gray-600 flex items-center gap-1.5">
+                    <MessageSquare className="h-3.5 w-3.5" />
+                    Comentários
+                    {comentariosDetalhe.length > 0 && (
+                      <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">
+                        {comentariosDetalhe.length}
+                      </span>
+                    )}
+                  </p>
+                  {loadingComentarios ? (
+                    <div className="flex items-center gap-2 text-gray-400 text-xs">
+                      <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      Carregando...
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-48 overflow-y-auto">
+                      {comentariosDetalhe.length === 0 && (
+                        <p className="text-xs text-gray-400 italic">Nenhum comentário ainda.</p>
+                      )}
+                      {comentariosDetalhe.map((c) => (
+                        <div key={c.id} className="bg-gray-50 rounded-lg px-3 py-2 text-xs group relative">
+                          <p className="font-semibold text-gray-700">{c.userNome} <span className="font-normal text-gray-400">· {new Date(c.criadoEm).toLocaleString("pt-BR")}</span></p>
+                          <p className="text-gray-700 mt-0.5">{c.texto}</p>
+                          {podeEditar && (
+                            <button
+                              onClick={() => tarefaDetalhe && deletarComentario(c.id, tarefaDetalhe.id)}
+                              className="absolute top-1.5 right-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600"
+                              title="Excluir"
+                            >
+                              <X className="h-3 w-3" />
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={novoComentario}
+                      onChange={(e) => setNovoComentario(e.target.value)}
+                      onKeyDown={(e) => { if (e.key === "Enter" && tarefaDetalhe) enviarComentario(tarefaDetalhe.id) }}
+                      placeholder="Adicionar comentário..."
+                      className="flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    />
+                    <Button
+                      size="sm"
+                      disabled={!novoComentario.trim() || enviandoComentario}
+                      onClick={() => tarefaDetalhe && enviarComentario(tarefaDetalhe.id)}
+                      className="h-8"
+                    >
+                      {enviandoComentario ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
+                    </Button>
+                  </div>
+                </div>
+
                 {/* Ações — botão de foto visível a TODOS os perfis */}
-                <div className="flex items-center justify-between pt-1 border-t">
+                <div className="flex items-center justify-between pt-3 border-t">
                   <div className="flex items-center gap-2 flex-wrap">
-                    {/* Adicionar Foto — todos os perfis */}
                     <Button
                       size="sm"
                       className="bg-amber-500 hover:bg-amber-600 text-white gap-1.5"
@@ -2039,64 +2312,6 @@ export function CronogramaView({
                       </>
                     )}
                   </div>
-                  {/* Comentários */}
-                  <div className="border-t pt-4 space-y-3">
-                    <p className="text-xs font-semibold text-gray-600 flex items-center gap-1.5">
-                      <MessageSquare className="h-3.5 w-3.5" />
-                      Comentários
-                      {comentariosDetalhe.length > 0 && (
-                        <span className="ml-1 px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-gray-100 text-gray-500">
-                          {comentariosDetalhe.length}
-                        </span>
-                      )}
-                    </p>
-                    {loadingComentarios ? (
-                      <div className="flex items-center gap-2 text-gray-400 text-xs">
-                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                        Carregando...
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {comentariosDetalhe.length === 0 && (
-                          <p className="text-xs text-gray-400 italic">Nenhum comentário ainda.</p>
-                        )}
-                        {comentariosDetalhe.map((c) => (
-                          <div key={c.id} className="bg-gray-50 rounded-lg px-3 py-2 text-xs group relative">
-                            <p className="font-semibold text-gray-700">{c.userNome} <span className="font-normal text-gray-400">· {new Date(c.criadoEm).toLocaleString("pt-BR")}</span></p>
-                            <p className="text-gray-700 mt-0.5">{c.texto}</p>
-                            {podeEditar && (
-                              <button
-                                onClick={() => tarefaDetalhe && deletarComentario(c.id, tarefaDetalhe.id)}
-                                className="absolute top-1.5 right-2 opacity-0 group-hover:opacity-100 text-red-400 hover:text-red-600"
-                                title="Excluir"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                    <div className="flex gap-2">
-                      <input
-                        type="text"
-                        value={novoComentario}
-                        onChange={(e) => setNovoComentario(e.target.value)}
-                        onKeyDown={(e) => { if (e.key === "Enter" && tarefaDetalhe) enviarComentario(tarefaDetalhe.id) }}
-                        placeholder="Adicionar comentário..."
-                        className="flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-blue-400"
-                      />
-                      <Button
-                        size="sm"
-                        disabled={!novoComentario.trim() || enviandoComentario}
-                        onClick={() => tarefaDetalhe && enviarComentario(tarefaDetalhe.id)}
-                        className="h-8"
-                      >
-                        {enviandoComentario ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Send className="h-3.5 w-3.5" />}
-                      </Button>
-                    </div>
-                  </div>
-
                   <Button variant="outline" size="sm" onClick={() => setTarefaDetalhe(null)}>
                     Fechar
                   </Button>

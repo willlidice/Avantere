@@ -171,9 +171,12 @@ model Tarefa {
   fim               DateTime
   ordem             Int
   jpgEditadoUrl     String?
-  responsavel       String?
-  statusManual      StatusManual?
-  dataConclusaoReal DateTime?
+  responsavel         String?
+  statusManual        StatusManual?
+  dataConclusaoReal   DateTime?
+  percentualConcluido Int           @default(0)
+  inicioBaseline      DateTime?
+  fimBaseline         DateTime?
   cronograma        Cronograma      @relation(fields: [cronogramaId], references: [id], onDelete: Cascade)
   imagens           TarefaImagem[]
   comentarios       Comentario[]

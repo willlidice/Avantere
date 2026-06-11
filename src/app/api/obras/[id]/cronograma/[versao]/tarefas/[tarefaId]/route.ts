@@ -137,6 +137,26 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         data.dataConclusaoReal = null
       }
     }
+    if (body.percentualConcluido !== undefined) {
+      const pct = Number(body.percentualConcluido)
+      if (!isNaN(pct) && pct >= 0 && pct <= 100) data.percentualConcluido = Math.round(pct)
+    }
+    if (body.inicioBaseline !== undefined) {
+      if (body.inicioBaseline) {
+        const d = new Date(body.inicioBaseline)
+        if (!isNaN(d.getTime())) data.inicioBaseline = d
+      } else {
+        data.inicioBaseline = null
+      }
+    }
+    if (body.fimBaseline !== undefined) {
+      if (body.fimBaseline) {
+        const d = new Date(body.fimBaseline)
+        if (!isNaN(d.getTime())) data.fimBaseline = d
+      } else {
+        data.fimBaseline = null
+      }
+    }
   }
 
   if (Object.keys(data).length === 0) {
@@ -164,29 +184,54 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     }),
   ])
 
-  // Cascade: se datas mudaram e cascadeRelacoes=true, mover sucessoras recursivamente
-  if (!ehProducao && body.cascadeRelacoes && (data.inicio || data.fim)) {
+  // Cascade: propagar delta de datas para sucessoras conforme cascadeRelacoes
+  const cascadeOpcao = body.cascadeRelacoes // false | "imediatas" | true
+  if (!ehProducao && cascadeOpcao && (data.inicio || data.fim)) {
     const novoInicio = data.inicio ? new Date(data.inicio as string) : tarefa.inicio
     const deltaMs = novoInicio.getTime() - tarefa.inicio.getTime()
 
-    const cascadeSucessoras = async (id: number, delta: number, visitados: Set<number>): Promise<void> => {
-      if (visitados.has(id)) return
-      visitados.add(id)
-      const relacoes = await prisma.tarefaRelacao.findMany({ where: { antecessoraId: id }, select: { sucessoraId: true } })
-      for (const r of relacoes) {
-        const suc = await prisma.tarefa.findUnique({ where: { id: r.sucessoraId }, select: { inicio: true, fim: true } })
-        if (!suc) continue
-        await prisma.tarefa.update({
-          where: { id: r.sucessoraId },
-          data: {
-            inicio: new Date(suc.inicio.getTime() + delta),
-            fim: new Date(suc.fim.getTime() + delta),
-          },
+    if (deltaMs !== 0) {
+      if (cascadeOpcao === "imediatas") {
+        // apenas sucessoras diretas, sem recursão
+        const relacoes = await prisma.tarefaRelacao.findMany({
+          where: { antecessoraId: tarefaId },
+          select: { sucessoraId: true },
         })
-        await cascadeSucessoras(r.sucessoraId, delta, visitados)
+        for (const r of relacoes) {
+          const suc = await prisma.tarefa.findUnique({ where: { id: r.sucessoraId }, select: { inicio: true, fim: true } })
+          if (!suc) continue
+          await prisma.tarefa.update({
+            where: { id: r.sucessoraId },
+            data: {
+              inicio: new Date(suc.inicio.getTime() + deltaMs),
+              fim: new Date(suc.fim.getTime() + deltaMs),
+            },
+          })
+        }
+      } else if (cascadeOpcao === true) {
+        // cascata completa — recursão com controle de ciclo
+        // visitados pré-semeado com tarefaId para evitar ciclos de volta à tarefa original
+        const visitados = new Set<number>([tarefaId])
+        const cascadeRecursivo = async (id: number): Promise<void> => {
+          const rels = await prisma.tarefaRelacao.findMany({ where: { antecessoraId: id }, select: { sucessoraId: true } })
+          for (const r of rels) {
+            if (visitados.has(r.sucessoraId)) continue
+            visitados.add(r.sucessoraId)
+            const suc = await prisma.tarefa.findUnique({ where: { id: r.sucessoraId }, select: { inicio: true, fim: true } })
+            if (!suc) continue
+            await prisma.tarefa.update({
+              where: { id: r.sucessoraId },
+              data: {
+                inicio: new Date(suc.inicio.getTime() + deltaMs),
+                fim: new Date(suc.fim.getTime() + deltaMs),
+              },
+            })
+            await cascadeRecursivo(r.sucessoraId)
+          }
+        }
+        await cascadeRecursivo(tarefaId)
       }
     }
-    if (deltaMs !== 0) await cascadeSucessoras(tarefaId, deltaMs, new Set([tarefaId]))
   }
 
   // Notificar PRODUCAO quando ADMIN/GESTAO muda status

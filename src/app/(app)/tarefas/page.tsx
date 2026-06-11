@@ -260,7 +260,7 @@ function SeletorStatus({ tarefa, obraId, versao, onChange }: {
 interface Comentario { id: number; userNome: string; texto: string; criadoEm: string }
 interface HistoricoStatus { id: number; criadoEm: string; userNome: string; statusAntes: string; statusDepois: string }
 
-function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, onResize }: {
+function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, onResize, onImageAdded }: {
   tarefa: Tarefa
   obraId: number
   versao: number
@@ -268,6 +268,7 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
   onClose: () => void
   onStatusChange: (id: number, statusManual: StatusManual, dataConclusaoReal?: string | null) => void
   onResize?: (tamanho: "sm" | "md" | "lg") => void
+  onImageAdded?: (img: TarefaImagem) => void
 }) {
   const [imagemIdx, setImagemIdx] = useState(0)
   const [imagensLocais, setImagensLocais] = useState<TarefaImagem[]>(tarefa.imagens)
@@ -300,6 +301,7 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
         const novaImagem = await res.json()
         setImagensLocais((prev) => [...prev, novaImagem])
         setImagemIdx(imagensLocais.length)
+        onImageAdded?.(novaImagem)
       }
     } finally {
       setUploadandoFoto(false)
@@ -794,6 +796,7 @@ function ObraAccordion({
   filtroLocal,
   filtroResponsavel,
   onStatusChange,
+  onImageAdded,
 }: {
   obra: ObraComTarefas
   idioma: string
@@ -801,6 +804,7 @@ function ObraAccordion({
   filtroLocal: string
   filtroResponsavel: string
   onStatusChange: (tarefaId: number, statusManual: StatusManual, dataConclusaoReal?: string | null) => void
+  onImageAdded?: (tarefaId: number, img: TarefaImagem) => void
 }) {
   const [aberta, setAberta] = useState(true)
   const [tarefaDetalhe, setTarefaDetalhe] = useState<Tarefa | null>(null)
@@ -891,6 +895,7 @@ function ObraAccordion({
                 setTarefaDetalhe((prev) => prev && prev.id === id ? { ...prev, statusManual, dataConclusaoReal: dataConclusaoReal ?? prev.dataConclusaoReal } : prev)
                 onStatusChange(id, statusManual, dataConclusaoReal)
               }}
+              onImageAdded={(img) => onImageAdded?.(tarefaDetalhe.id, img)}
             />
           )}
         </DialogContent>
@@ -1239,6 +1244,15 @@ export default function TarefasPage() {
               filtroLocal={filtroLocal}
               filtroResponsavel={filtroResponsavel}
               onStatusChange={(id, s, d) => onStatusChange(id, s, d)}
+              onImageAdded={(tarefaId, img) =>
+                setObras((prev) =>
+                  prev.map((o) =>
+                    o.obraId === obra.obraId
+                      ? { ...o, tarefas: o.tarefas.map((t) => t.id === tarefaId ? { ...t, imagens: [...t.imagens, img] } : t) }
+                      : o
+                  )
+                )
+              }
             />
           ))}
           {obrasFiltradas.length === 0 && busca && (

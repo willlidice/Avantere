@@ -31,11 +31,22 @@ import {
 import { t } from "@/lib/i18n"
 import * as XLSX from "xlsx"
 
+interface TraducaoJson {
+  resumoAtividade: string
+  instrucoes: string | null
+  materiais: string[]
+  observacoes: string | null
+  mesReferencia: string
+  subtarefas: { ordem: number; descricao: string }[]
+}
+
 interface Tarefa {
   id: number
   idExterno: string
   nome: string
   nomeTraduzido: string | null
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  traducaoJson: TraducaoJson | null | any
   local: string
   quantidade: number
   unidade: string
@@ -78,8 +89,7 @@ function TarefaCard({
   onEditar: (t: Tarefa) => void
 }) {
   const [expandido, setExpandido] = useState(false)
-  const traducao = tarefa.nomeTraduzido ?? ""
-  const longa = traducao.length > 200
+  const temDetalhes = !!(tarefa.traducaoJson?.instrucoes || tarefa.traducaoJson?.subtarefas?.length || tarefa.traducaoJson?.materiais?.length || tarefa.traducaoJson?.observacoes)
 
   return (
     <div className="bg-white border rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
@@ -100,27 +110,15 @@ function TarefaCard({
           <p className="text-sm text-gray-700">{tarefa.nome}</p>
         </div>
 
-        {/* Tradução */}
+        {/* Resumo / Tradução */}
         <div>
           <p className="text-[10px] uppercase font-semibold tracking-wide text-blue-500 mb-1">
             Tradução PT-BR
           </p>
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-3">
-            <p className={`text-sm text-blue-900 leading-relaxed whitespace-pre-line ${!expandido && longa ? "line-clamp-3" : ""}`}>
-              {traducao}
+            <p className="text-sm text-blue-900 leading-relaxed font-medium">
+              {tarefa.traducaoJson?.resumoAtividade ?? tarefa.nomeTraduzido}
             </p>
-            {longa && (
-              <button
-                onClick={() => setExpandido((v) => !v)}
-                className="mt-1.5 flex items-center gap-0.5 text-[11px] text-blue-600 hover:text-blue-800 font-medium"
-              >
-                {expandido ? (
-                  <><ChevronUp className="h-3 w-3" /> Recolher</>
-                ) : (
-                  <><ChevronDown className="h-3 w-3" /> Ver completo</>
-                )}
-              </button>
-            )}
           </div>
         </div>
 
@@ -131,6 +129,61 @@ function TarefaCard({
             {" · "}
             {tarefa.quantidade.toLocaleString("pt-BR")} {tarefa.unidade}
           </p>
+        )}
+
+        {/* Detalhes expandidos */}
+        {temDetalhes && expandido && (
+          <div className="space-y-3 pt-1 border-t border-gray-100">
+            {tarefa.traducaoJson?.instrucoes && (
+              <div>
+                <p className="text-[10px] uppercase font-semibold tracking-wide text-gray-400 mb-1">Instruções gerais</p>
+                <p className="text-sm text-gray-700 bg-gray-50 rounded-lg px-3 py-2 leading-relaxed">{tarefa.traducaoJson.instrucoes}</p>
+              </div>
+            )}
+            {tarefa.traducaoJson?.subtarefas?.length > 0 && (
+              <div>
+                <p className="text-[10px] uppercase font-semibold tracking-wide text-gray-400 mb-2">Passo a passo</p>
+                <ol className="space-y-1.5">
+                  {tarefa.traducaoJson.subtarefas.map((s: { ordem: number; descricao: string }) => (
+                    <li key={s.ordem} className="flex gap-2 text-sm text-gray-700">
+                      <span className="shrink-0 w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold mt-0.5">{s.ordem}</span>
+                      <span className="leading-snug">{s.descricao}</span>
+                    </li>
+                  ))}
+                </ol>
+              </div>
+            )}
+            {tarefa.traducaoJson?.materiais?.length > 0 && (
+              <div>
+                <p className="text-[10px] uppercase font-semibold tracking-wide text-gray-400 mb-1.5">Materiais / Ferramentas</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {tarefa.traducaoJson.materiais.map((m: string, i: number) => (
+                    <span key={i} className="text-xs bg-amber-50 text-amber-800 border border-amber-200 rounded px-2 py-0.5">{m}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {tarefa.traducaoJson?.observacoes && (
+              <div>
+                <p className="text-[10px] uppercase font-semibold tracking-wide text-orange-500 mb-1">Segurança / Observações</p>
+                <p className="text-sm text-orange-900 bg-orange-50 border border-orange-200 rounded-lg px-3 py-2 leading-relaxed">{tarefa.traducaoJson.observacoes}</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Botão expandir */}
+        {temDetalhes && (
+          <button
+            onClick={() => setExpandido((v) => !v)}
+            className="flex items-center gap-1 text-[11px] text-gray-500 hover:text-gray-700 font-medium pt-0.5"
+          >
+            {expandido ? (
+              <><ChevronUp className="h-3 w-3" /> Recolher detalhes</>
+            ) : (
+              <><ChevronDown className="h-3 w-3" /> Ver passo a passo e materiais</>
+            )}
+          </button>
         )}
       </div>
 

@@ -152,9 +152,12 @@ REGRAS:
   }[] = []
 
   try {
+    // ~250 tokens por tarefa; mínimo 512, máximo 4096 — protege orçamento
+    const maxTokens = Math.min(4096, Math.max(512, tarefas.length * 250))
+
     const resposta = await client.messages.create({
       model: "claude-haiku-4-5",
-      max_tokens: 8192,
+      max_tokens: maxTokens,
       messages: [{ role: "user", content: prompt }],
     })
 
