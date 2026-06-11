@@ -3,7 +3,7 @@ FROM node:20-alpine AS source
 WORKDIR /src
 RUN apk add --no-cache git
 # Atualizar o sufixo a cada deploy para forçar novo clone
-RUN echo "bust-20260611-002" && \
+RUN echo "bust-20260611-003" && \
     git clone --depth 1 --branch master https://github.com/willlidice/Avantere .
 
 # ── 2. Dependências ───────────────────────────────────────────────────────────
@@ -38,10 +38,10 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static     ./.next/static
 COPY --from=builder                        /app/public           ./public
 
 # Prisma: schema + migrations + cliente gerado
-COPY --from=builder /app/prisma               ./prisma
-COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
-COPY --from=deps    /app/node_modules/prisma  ./node_modules/prisma
-COPY --from=deps    /app/node_modules/@prisma ./node_modules/@prisma
+COPY --from=builder --chown=nextjs:nodejs /app/prisma               ./prisma
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=deps    --chown=nextjs:nodejs /app/node_modules/prisma  ./node_modules/prisma
+COPY --from=deps    --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
 
 # Entrypoint: roda migrate deploy antes de iniciar (idempotente)
 RUN echo '#!/bin/sh'                                                     >  /app/entrypoint.sh && \
