@@ -3,7 +3,7 @@ FROM node:20-alpine AS source
 WORKDIR /src
 RUN apk add --no-cache git
 # Atualizar o sufixo a cada deploy para forçar novo clone
-RUN echo "bust-20260611-001" && \
+RUN echo "bust-20260611-002" && \
     git clone --depth 1 --branch master https://github.com/willlidice/Avantere .
 
 # ── 2. Dependências ───────────────────────────────────────────────────────────
