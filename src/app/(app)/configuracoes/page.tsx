@@ -291,8 +291,8 @@ export default function ConfiguracoesPage() {
         </CardContent>
       </Card>
 
-      {/* Histórico de versões (ADMIN only) */}
-      {dados.perfil === "ADMIN" && (
+      {/* Histórico de versões (ADMIN/SUPER_ADMIN) */}
+      {["ADMIN", "SUPER_ADMIN"].includes(dados.perfil) && (
         <Link href="/configuracoes/historico">
           <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
             <CardContent className="flex items-center justify-between py-4">

@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3"
+import { S3Client, PutObjectCommand, DeleteObjectCommand, DeleteObjectsCommand, GetObjectCommand, ListObjectsV2Command } from "@aws-sdk/client-s3"
 
 export const r2 = new S3Client({
   region: "auto",
@@ -63,4 +63,30 @@ export async function deletarDoR2(chave: string): Promise<void> {
       Key: chave,
     }),
   )
+}
+
+export async function deletarPrefixoDoR2(prefixo: string): Promise<void> {
+  let continuationToken: string | undefined
+
+  do {
+    const resp = await r2.send(
+      new ListObjectsV2Command({
+        Bucket: process.env.R2_BUCKET_NAME!,
+        Prefix: prefixo,
+        ContinuationToken: continuationToken,
+      }),
+    )
+
+    const chaves = (resp.Contents ?? []).map((o) => o.Key).filter((k): k is string => !!k)
+    if (chaves.length > 0) {
+      await r2.send(
+        new DeleteObjectsCommand({
+          Bucket: process.env.R2_BUCKET_NAME!,
+          Delete: { Objects: chaves.map((Key) => ({ Key })) },
+        }),
+      )
+    }
+
+    continuationToken = resp.IsTruncated ? resp.NextContinuationToken : undefined
+  } while (continuationToken)
 }

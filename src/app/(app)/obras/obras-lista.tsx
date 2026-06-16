@@ -2,9 +2,10 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Pencil, ToggleLeft, ToggleRight, Plus, CalendarDays, Building2, X, MapPin, User, FileText, DollarSign, Calendar, ClipboardList, ChevronRight } from "lucide-react"
+import { Pencil, ToggleLeft, ToggleRight, Plus, CalendarDays, Building2, X, MapPin, User, FileText, DollarSign, Calendar, ClipboardList, ChevronRight, Trash2, AlertTriangle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
+import { Input } from "@/components/ui/input"
 import {
   Table,
   TableBody,
@@ -38,6 +39,7 @@ interface Obra {
 interface ObrasListaProps {
   obras: Obra[]
   isAdmin: boolean
+  isSuperAdmin: boolean
 }
 
 function formatarData(iso: string | null | undefined) {
@@ -169,10 +171,84 @@ function CardDetalheObra({ obra, onFechar }: { obra: Obra; onFechar: () => void 
   )
 }
 
-export function ObrasLista({ obras: inicial, isAdmin }: ObrasListaProps) {
+function DialogExcluirObra({
+  obra,
+  onFechar,
+  onExcluida,
+}: {
+  obra: Obra
+  onFechar: () => void
+  onExcluida: () => void
+}) {
+  const [confirmacaoTexto, setConfirmacaoTexto] = useState("")
+  const [excluindo, setExcluindo] = useState(false)
+  const [erro, setErro] = useState<string | null>(null)
+
+  const confirmado = confirmacaoTexto.trim() === obra.nome
+
+  async function excluir() {
+    if (!confirmado) return
+    setExcluindo(true)
+    setErro(null)
+    const res = await fetch(`/api/obras/${obra.id}`, { method: "DELETE" })
+    if (res.ok) {
+      onExcluida()
+    } else {
+      const data = await res.json().catch(() => ({}))
+      setErro(data.erro ?? "Erro ao excluir obra")
+      setExcluindo(false)
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={(open) => { if (!open) onFechar() }}>
+      <DialogContent className="max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2 text-red-700">
+            <AlertTriangle className="h-5 w-5 shrink-0" />
+            Excluir obra definitivamente
+          </DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-3 px-1">
+          <p className="text-sm text-gray-700">
+            Isso exclui <strong>permanentemente</strong> a obra <strong>{obra.nome}</strong> e todo o seu
+            cronograma, tarefas, imagens, documentos e levantamentos. Não pode ser desfeito.
+          </p>
+          <div className="space-y-1.5">
+            <p className="text-xs text-gray-500">
+              Digite <strong>{obra.nome}</strong> pra confirmar:
+            </p>
+            <Input
+              value={confirmacaoTexto}
+              onChange={(e) => setConfirmacaoTexto(e.target.value)}
+              autoFocus
+            />
+          </div>
+          {erro && <p className="text-sm text-red-600">{erro}</p>}
+          <div className="flex justify-end gap-2 pt-2">
+            <Button variant="outline" onClick={onFechar} disabled={excluindo}>
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={excluir}
+              disabled={!confirmado || excluindo}
+            >
+              {excluindo ? "Excluindo..." : "Excluir definitivamente"}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+export function ObrasLista({ obras: inicial, isAdmin, isSuperAdmin }: ObrasListaProps) {
   const [obras, setObras] = useState(inicial)
   const [carregando, setCarregando] = useState<number | null>(null)
   const [obraDetalhe, setObraDetalhe] = useState<Obra | null>(null)
+  const [obraParaExcluir, setObraParaExcluir] = useState<Obra | null>(null)
 
   async function toggleAtiva(obra: Obra) {
     setCarregando(obra.id)
@@ -208,6 +284,17 @@ export function ObrasLista({ obras: inicial, isAdmin }: ObrasListaProps) {
     <>
       {obraDetalhe && (
         <CardDetalheObra obra={obraDetalhe} onFechar={() => setObraDetalhe(null)} />
+      )}
+
+      {obraParaExcluir && (
+        <DialogExcluirObra
+          obra={obraParaExcluir}
+          onFechar={() => setObraParaExcluir(null)}
+          onExcluida={() => {
+            setObras((prev) => prev.filter((o) => o.id !== obraParaExcluir.id))
+            setObraParaExcluir(null)
+          }}
+        />
       )}
 
       {/* Tabela desktop */}
@@ -278,6 +365,16 @@ export function ObrasLista({ obras: inicial, isAdmin }: ObrasListaProps) {
                         </Button>
                       </>
                     )}
+                    {isSuperAdmin && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setObraParaExcluir(obra)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -334,6 +431,16 @@ export function ObrasLista({ obras: inicial, isAdmin }: ObrasListaProps) {
                       )}
                     </Button>
                   </>
+                )}
+                {isSuperAdmin && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setObraParaExcluir(obra)}
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
                 )}
               </div>
             </div>

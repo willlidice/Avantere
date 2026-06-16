@@ -6,6 +6,32 @@ import { ArrowLeft, Tag, CheckCircle2 } from "lucide-react"
 
 const HISTORICO = [
   {
+    versao: "2.3.0",
+    data: "2026-06-16",
+    tipo: "fix",
+    itens: [
+      "Card de uso de disco (VPS + Cloudflare R2) no dashboard, exclusivo SUPER_ADMIN",
+      "Créditos de uso de IA no dashboard agora exclusivos SUPER_ADMIN",
+      "ADMIN agora exige vínculo com a obra pra acessar seus recursos, igual GESTAO — corrige vazamento de dados entre organizações em várias rotas",
+      "Exclusão definitiva de obra disponível pro SUPER_ADMIN",
+      "Gestão de usuários (criar/editar conta) restrita ao SUPER_ADMIN",
+      "Correção: página de histórico de versões agora visível pro SUPER_ADMIN",
+    ],
+  },
+  {
+    versao: "2.2.0",
+    data: "2026-06-12",
+    tipo: "feature",
+    itens: [
+      "Levantamento de Materiais via IA (Haiku vision) a partir de PDF de 1 página ou XLSX",
+      "Fluxo de perguntas e respostas gerado por IA quando o PDF não traz dados suficientes",
+      "Score de confiança por item extraído",
+      "Aprovação do levantamento e exportação em XLSX",
+      "Barra de ferramentas no card da obra (Cronograma, Levantamento)",
+      "PDF de levantamento removido do R2 automaticamente após conclusão do job",
+    ],
+  },
+  {
     versao: "2.1.0",
     data: "2025-06-09",
     tipo: "feature",
@@ -61,7 +87,7 @@ const TIPO_LABEL: Record<string, string> = {
 
 export default async function HistoricoPage() {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.perfil !== "ADMIN") redirect("/configuracoes")
+  if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil)) redirect("/configuracoes")
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

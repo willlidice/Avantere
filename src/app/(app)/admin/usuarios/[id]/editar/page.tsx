@@ -6,7 +6,7 @@ import { EditarUsuarioForm } from "./editar-usuario-form"
 
 export default async function EditarUsuarioPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.perfil !== "ADMIN") redirect("/obras")
+  if (!session || session.user.perfil !== "SUPER_ADMIN") redirect("/obras")
 
   const usuario = await prisma.user.findUnique({
     where: { id: parseInt(params.id) },

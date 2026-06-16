@@ -51,7 +51,11 @@ export default async function ObrasPage() {
         )}
       </div>
 
-      <ObrasLista obras={obrasSerializadas} isAdmin={isAdmin} />
+      <ObrasLista
+        obras={obrasSerializadas}
+        isAdmin={isAdmin}
+        isSuperAdmin={session.user.perfil === "SUPER_ADMIN"}
+      />
     </div>
   )
 }

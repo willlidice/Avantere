@@ -9,7 +9,7 @@ import { UsuariosLista } from "./usuarios-lista"
 
 export default async function UsuariosPage() {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.perfil !== "ADMIN") redirect("/obras")
+  if (!session || session.user.perfil !== "SUPER_ADMIN") redirect("/obras")
 
   const usuarios = await prisma.user.findMany({
     select: { id: true, nome: true, email: true, perfil: true, ativo: true, criadoEm: true },

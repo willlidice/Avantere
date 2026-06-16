@@ -10,21 +10,16 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions)
-  if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil))
+  if (!session || session.user.perfil !== "SUPER_ADMIN")
     return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
 
   const userId = parseInt(params.id)
-  const orgId = session.user.organizacaoId
 
   const usuario = await prisma.user.findUnique({
     where: { id: userId },
     select: { id: true, nome: true, email: true, perfil: true, ativo: true, organizacaoId: true },
   })
   if (!usuario) return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
-
-  // ADMIN só acessa usuários da própria org
-  if (session.user.perfil === "ADMIN" && orgId && usuario.organizacaoId !== orgId)
-    return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
 
   return NextResponse.json(usuario)
 }
@@ -34,21 +29,10 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   const session = await getServerSession(authOptions)
-  if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil))
+  if (!session || session.user.perfil !== "SUPER_ADMIN")
     return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
 
   const userId = parseInt(params.id)
-  const orgId = session.user.organizacaoId
-
-  // ADMIN verifica se usuário pertence à mesma org
-  if (session.user.perfil === "ADMIN" && orgId) {
-    const existente = await prisma.user.findUnique({
-      where: { id: userId },
-      select: { organizacaoId: true },
-    })
-    if (!existente || existente.organizacaoId !== orgId)
-      return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
-  }
 
   const body = await req.json()
   const data: Record<string, unknown> = {}

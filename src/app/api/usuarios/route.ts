@@ -8,14 +8,10 @@ import { enviarEmail } from "@/lib/email"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
-  if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil))
+  if (!session || session.user.perfil !== "SUPER_ADMIN")
     return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
 
-  const orgId = session.user.organizacaoId
-  const isSuperAdmin = session.user.perfil === "SUPER_ADMIN"
-
   const usuarios = await prisma.user.findMany({
-    where: isSuperAdmin ? {} : { organizacaoId: orgId ?? undefined },
     select: { id: true, nome: true, email: true, perfil: true, ativo: true, criadoEm: true },
     orderBy: { criadoEm: "desc" },
   })
@@ -24,7 +20,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
-  if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil))
+  if (!session || session.user.perfil !== "SUPER_ADMIN")
     return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
 
   const { nome, email, senha, perfil } = await req.json()

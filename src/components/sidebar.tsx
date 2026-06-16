@@ -44,7 +44,7 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
     ...(perfil !== "PRODUCAO"
       ? [{ href: "/obras", label: t(idioma, "obras"), icon: Building2 }]
       : [{ href: "/tarefas", label: t(idioma, "tarefasMenu"), icon: HardHat }]),
-    ...(perfil === "ADMIN"
+    ...(perfil === "SUPER_ADMIN"
       ? [{ href: "/admin/usuarios", label: t(idioma, "usuarios"), icon: Users }]
       : []),
     { href: "/busca", label: "Busca", icon: Search },
@@ -196,7 +196,7 @@ export function MobileHeader({ perfil, nome }: { perfil: string; nome: string })
     ...(perfil !== "PRODUCAO"
       ? [{ href: "/obras", label: t(idioma, "obras"), icon: Building2 }]
       : [{ href: "/tarefas", label: t(idioma, "tarefasMenu"), icon: HardHat }]),
-    ...(perfil === "ADMIN" ? [{ href: "/admin/usuarios", label: t(idioma, "usuarios"), icon: Users }] : []),
+    ...(perfil === "SUPER_ADMIN" ? [{ href: "/admin/usuarios", label: t(idioma, "usuarios"), icon: Users }] : []),
     { href: "/busca", label: "Busca", icon: Search },
     { href: "/sugestoes", label: "Sugestões", icon: Lightbulb },
     { href: "/configuracoes", label: t(idioma, "configuracoes"), icon: Settings },

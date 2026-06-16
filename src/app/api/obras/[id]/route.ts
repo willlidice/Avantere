@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { temAcessoObra } from "@/lib/acesso-obra"
+import { deletarPrefixoDoR2 } from "@/lib/r2"
 
 export async function GET(
   _: NextRequest,
@@ -51,4 +52,40 @@ export async function PUT(
 
   const obra = await prisma.obra.update({ where: { id: obraId }, data })
   return NextResponse.json(obra)
+}
+
+export async function DELETE(
+  _: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  const session = await getServerSession(authOptions)
+  if (!session || session.user.perfil !== "SUPER_ADMIN")
+    return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
+
+  const obraId = parseInt(params.id)
+  const obra = await prisma.obra.findUnique({ where: { id: obraId }, select: { nome: true } })
+  if (!obra) return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
+
+  try {
+    await Promise.all([
+      deletarPrefixoDoR2(`obras/${obraId}/`),
+      deletarPrefixoDoR2(`documentos/obra-${obraId}/`),
+      deletarPrefixoDoR2(`levantamento/obra-${obraId}/`),
+    ])
+  } catch (err) {
+    console.error("[obras DELETE] falha ao limpar arquivos do R2:", err)
+  }
+
+  await prisma.logEdicao.create({
+    data: {
+      userId: parseInt(session.user.id),
+      obraId,
+      acao: "EXCLUIR_OBRA",
+      dadosAntes: { nome: obra.nome },
+    },
+  })
+
+  await prisma.obra.delete({ where: { id: obraId } })
+
+  return NextResponse.json({ ok: true })
 }
