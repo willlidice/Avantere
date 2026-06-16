@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 type Params = { params: { id: string; versao: string; tarefaId: string } }
 
@@ -9,8 +10,12 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ erro: "Não autenticado" }, { status: 401 })
 
+  const obraId = parseInt(params.id)
   const tarefaId = parseInt(params.tarefaId)
   if (isNaN(tarefaId)) return NextResponse.json({ erro: "Inválido" }, { status: 400 })
+
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
 
   const logs = await prisma.logEdicao.findMany({
     where: {

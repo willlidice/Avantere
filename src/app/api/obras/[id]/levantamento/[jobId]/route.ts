@@ -1,21 +1,12 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
+import { getServerSession, Session } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
-async function verificarAcesso(obraId: number, userId: number, perfil: string, orgId: number | null) {
-  if (!["ADMIN", "SUPER_ADMIN", "GESTAO"].includes(perfil)) return false
-  if (perfil === "GESTAO") {
-    const vinculo = await prisma.obraUser.findUnique({
-      where: { userId_obraId: { userId, obraId } },
-    })
-    if (!vinculo) return false
-  }
-  if (perfil === "ADMIN" && orgId) {
-    const obra = await prisma.obra.findUnique({ where: { id: obraId }, select: { organizacaoId: true } })
-    if (!obra || obra.organizacaoId !== orgId) return false
-  }
-  return true
+async function verificarAcesso(obraId: number, session: Session | null) {
+  if (!session?.user || !["ADMIN", "SUPER_ADMIN", "GESTAO"].includes(session.user.perfil)) return false
+  return temAcessoObra(session, obraId)
 }
 
 export async function GET(
@@ -29,7 +20,7 @@ export async function GET(
   const jobId = parseInt(params.jobId)
   if (isNaN(obraId) || isNaN(jobId)) return NextResponse.json({ erro: "ID inválido" }, { status: 400 })
 
-  const ok = await verificarAcesso(obraId, parseInt(session.user.id), session.user.perfil, session.user.organizacaoId ?? null)
+  const ok = await verificarAcesso(obraId, session)
   if (!ok) return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
 
   const job = await prisma.levantamentoJob.findFirst({
@@ -62,7 +53,7 @@ export async function PATCH(
   const jobId = parseInt(params.jobId)
   if (isNaN(obraId) || isNaN(jobId)) return NextResponse.json({ erro: "ID inválido" }, { status: 400 })
 
-  const ok = await verificarAcesso(obraId, parseInt(session.user.id), session.user.perfil, session.user.organizacaoId ?? null)
+  const ok = await verificarAcesso(obraId, session)
   if (!ok) return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
 
   const job = await prisma.levantamentoJob.findFirst({ where: { id: jobId, obraId } })

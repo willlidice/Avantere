@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { Session } from "next-auth"
+import { getServerSession, Session } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { uploadArquivoParaR2, deletarDoR2 } from "@/lib/r2"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 const TIPOS_PERMITIDOS = [
   "application/pdf",
@@ -19,12 +19,7 @@ const TAMANHO_MAX = 20 * 1024 * 1024 // 20 MB
 async function verificarAcesso(obraId: number, session: Session | null) {
   if (!session?.user || !["ADMIN", "SUPER_ADMIN", "GESTAO"].includes(session.user.perfil))
     return false
-  const orgId = session.user.organizacaoId
-  if (session.user.perfil === "ADMIN" && orgId) {
-    const obra = await prisma.obra.findUnique({ where: { id: obraId }, select: { organizacaoId: true } })
-    if (!obra || obra.organizacaoId !== orgId) return false
-  }
-  return true
+  return temAcessoObra(session, obraId)
 }
 
 export async function GET(_: NextRequest, { params }: { params: { id: string } }) {

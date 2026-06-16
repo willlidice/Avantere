@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { filtroObrasVisiveis } from "@/lib/acesso-obra"
 
 export async function GET(req: NextRequest) {
   const session = await getServerSession(authOptions)
@@ -10,25 +11,7 @@ export async function GET(req: NextRequest) {
   const q = req.nextUrl.searchParams.get("q")?.trim()
   if (!q || q.length < 2) return NextResponse.json({ tarefas: [] })
 
-  const userId = parseInt(session.user.id)
-  const perfil = session.user.perfil
-
-  const orgId = session.user.organizacaoId
-  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(perfil)
-
-  // Montar filtro de acesso por obra (isolado por org)
-  const obraFilter = isAdmin
-    ? orgId
-      ? { cronograma: { obra: { organizacaoId: orgId } } }
-      : {}
-    : {
-        cronograma: {
-          obra: {
-            organizacaoId: orgId ?? undefined,
-            usuarios: { some: { userId } },
-          },
-        },
-      }
+  const obraFilter = { cronograma: { obra: filtroObrasVisiveis(session) } }
 
   const tarefas = await prisma.tarefa.findMany({
     where: {

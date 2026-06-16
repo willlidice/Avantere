@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { filtroObrasVisiveis } from "@/lib/acesso-obra"
 
 const LIMITE_OBRAS_TRIAL = 3
 
@@ -9,26 +10,13 @@ export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ erro: "Não autorizado" }, { status: 401 })
 
-  const orgId = session.user.organizacaoId
-  const isAdmin = session.user.perfil === "ADMIN" || session.user.perfil === "SUPER_ADMIN"
-  const isSuperAdmin = session.user.perfil === "SUPER_ADMIN"
+  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil)
 
-  // SUPER_ADMIN vê tudo; ADMIN vê apenas da própria org
-  const obras = isAdmin && !isSuperAdmin
-    ? await prisma.obra.findMany({
-        where: { organizacaoId: orgId ?? undefined },
-        orderBy: { criadoEm: "desc" },
-      })
-    : isSuperAdmin
-    ? await prisma.obra.findMany({ orderBy: { criadoEm: "desc" } })
-    : await prisma.obra.findMany({
-        where: {
-          ativa: true,
-          organizacaoId: orgId ?? undefined,
-          usuarios: { some: { userId: parseInt(session.user.id) } },
-        },
-        orderBy: { criadoEm: "desc" },
-      })
+  // ADMIN/SUPER_ADMIN também administram obras inativas; GESTAO/PRODUCAO só veem ativas (comportamento já existente).
+  const obras = await prisma.obra.findMany({
+    where: filtroObrasVisiveis(session, { apenasAtivas: !isAdmin }),
+    orderBy: { criadoEm: "desc" },
+  })
 
   return NextResponse.json(obras)
 }
@@ -63,5 +51,14 @@ export async function POST(req: NextRequest) {
       organizacaoId: orgId ?? null,
     },
   })
+
+  // ADMIN precisa de vínculo ObraUser para acessar obras (igual GESTAO).
+  // SUPER_ADMIN não precisa — já tem acesso irrestrito.
+  if (session.user.perfil === "ADMIN") {
+    await prisma.obraUser.create({
+      data: { obraId: obra.id, userId: parseInt(session.user.id) },
+    })
+  }
+
   return NextResponse.json(obra, { status: 201 })
 }

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { enviarEmail } from "@/lib/email"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 type Params = { params: { id: string; versao: string } }
 
@@ -16,6 +17,9 @@ export async function POST(req: NextRequest, { params }: Params) {
 
   if (isNaN(obraId) || isNaN(versao))
     return NextResponse.json({ erro: "Parâmetros inválidos" }, { status: 400 })
+
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Sem permissão" }, { status: 403 })
 
   const { destinatario } = await req.json()
   if (!destinatario?.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(destinatario.trim()))

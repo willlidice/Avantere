@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import * as XLSX from "xlsx"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 export async function GET(
   _: NextRequest,
@@ -18,6 +19,9 @@ export async function GET(
   const obraId = parseInt(params.id)
   const jobId = parseInt(params.jobId)
   if (isNaN(obraId) || isNaN(jobId)) return NextResponse.json({ erro: "ID inválido" }, { status: 400 })
+
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
 
   const job = await prisma.levantamentoJob.findFirst({
     where: { id: jobId, obraId },

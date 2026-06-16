@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 export async function GET(
   _req: NextRequest,
@@ -14,12 +15,8 @@ export async function GET(
   const obraId = parseInt(params.id)
   if (isNaN(obraId)) return NextResponse.json({ erro: "Parâmetros inválidos" }, { status: 400 })
 
-  if (session.user.perfil === "GESTAO") {
-    const vinculo = await prisma.obraUser.findFirst({
-      where: { obraId, userId: parseInt(session.user.id) },
-    })
-    if (!vinculo) return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
-  }
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
 
   const logs = await prisma.logEdicao.findMany({
     where: { obraId },

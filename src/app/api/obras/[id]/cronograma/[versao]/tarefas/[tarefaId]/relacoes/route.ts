@@ -1,19 +1,14 @@
 import { NextRequest, NextResponse } from "next/server"
-import { getServerSession } from "next-auth"
-import { Session } from "next-auth"
+import { getServerSession, Session } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 type Params = { id: string; versao: string; tarefaId: string }
 
 async function verificarAcesso(obraId: number, session: Session | null) {
   if (!session?.user || !["ADMIN", "SUPER_ADMIN", "GESTAO"].includes(session.user.perfil)) return false
-  const orgId = session.user.organizacaoId
-  if (session.user.perfil === "ADMIN" && orgId) {
-    const obra = await prisma.obra.findUnique({ where: { id: obraId }, select: { organizacaoId: true } })
-    if (!obra || obra.organizacaoId !== orgId) return false
-  }
-  return true
+  return temAcessoObra(session, obraId)
 }
 
 export async function GET(_: NextRequest, { params }: { params: Params }) {

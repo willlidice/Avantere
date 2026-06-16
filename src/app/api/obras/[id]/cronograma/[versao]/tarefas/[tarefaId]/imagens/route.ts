@@ -3,28 +3,9 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { uploadJpgParaR2 } from "@/lib/r2"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 type Params = { params: { id: string; versao: string; tarefaId: string } }
-
-async function verificarAcesso(
-  userId: number,
-  obraId: number,
-  perfil: string,
-  versao: number,
-  tarefaId: number,
-) {
-  if (perfil === "GESTAO") {
-    const vinculo = await prisma.obraUser.findFirst({
-      where: { obraId, userId },
-    })
-    if (!vinculo) return null
-  }
-
-  const tarefa = await prisma.tarefa.findFirst({
-    where: { id: tarefaId, cronograma: { obraId, versao } },
-  })
-  return tarefa
-}
 
 export async function GET(_req: NextRequest, { params }: Params) {
   const session = await getServerSession(authOptions)
@@ -33,6 +14,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const obraId = parseInt(params.id)
   const versao = parseInt(params.versao)
   const tarefaId = parseInt(params.tarefaId)
+
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Sem permissão" }, { status: 403 })
 
   const imagens = await prisma.tarefaImagem.findMany({
     where: { tarefaId },
@@ -54,14 +38,13 @@ export async function POST(req: NextRequest, { params }: Params) {
     return NextResponse.json({ erro: "Parâmetros inválidos" }, { status: 400 })
   }
 
-  const tarefa = await verificarAcesso(
-    parseInt(session.user.id),
-    obraId,
-    session.user.perfil,
-    versao,
-    tarefaId,
-  )
-  if (!tarefa) return NextResponse.json({ erro: "Sem permissão" }, { status: 403 })
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Sem permissão" }, { status: 403 })
+
+  const tarefa = await prisma.tarefa.findFirst({
+    where: { id: tarefaId, cronograma: { obraId, versao } },
+  })
+  if (!tarefa) return NextResponse.json({ erro: "Tarefa não encontrada" }, { status: 404 })
 
   const formData = await req.formData()
   const arquivo = formData.get("imagem") as File | null

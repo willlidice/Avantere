@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 type Params = { params: { id: string; versao: string; tarefaId: string } }
 
@@ -12,6 +13,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
   const obraId = parseInt(params.id)
   const versao = parseInt(params.versao)
   const tarefaId = parseInt(params.tarefaId)
+
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
 
   const tarefa = await prisma.tarefa.findFirst({
     where: { id: tarefaId, cronograma: { obraId, versao } },
@@ -33,6 +37,9 @@ export async function POST(req: NextRequest, { params }: Params) {
   const obraId = parseInt(params.id)
   const versao = parseInt(params.versao)
   const tarefaId = parseInt(params.tarefaId)
+
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
 
   const tarefa = await prisma.tarefa.findFirst({
     where: { id: tarefaId, cronograma: { obraId, versao } },
@@ -63,11 +70,16 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   const { comentarioId } = await req.json()
   if (!comentarioId) return NextResponse.json({ erro: "ID inválido" }, { status: 400 })
 
-  const comentario = await prisma.comentario.findUnique({ where: { id: comentarioId } })
+  const comentario = await prisma.comentario.findUnique({
+    where: { id: comentarioId },
+    include: { tarefa: { select: { cronograma: { select: { obraId: true } } } } },
+  })
   if (!comentario) return NextResponse.json({ erro: "Comentário não encontrado" }, { status: 404 })
 
   const ehDono = comentario.userId === parseInt(session.user.id)
-  const ehAdmin = session.user.perfil === "ADMIN"
+  const ehAdmin =
+    ["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil) &&
+    (await temAcessoObra(session, comentario.tarefa.cronograma.obraId))
   if (!ehDono && !ehAdmin) return NextResponse.json({ erro: "Sem permissão" }, { status: 403 })
 
   await prisma.comentario.delete({ where: { id: comentarioId } })

@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { enviarEmail } from "@/lib/email"
+import { filtroObrasVisiveis } from "@/lib/acesso-obra"
 
 // GET — lista tarefas vencendo nos próximos N dias do usuário
 export async function GET(_req: NextRequest) {
@@ -22,20 +23,8 @@ export async function GET(_req: NextRequest) {
   const limite = new Date(hoje)
   limite.setUTCDate(limite.getUTCDate() + dias)
 
-  let obraIds: number[] | undefined
-  if (session.user.perfil === "GESTAO") {
-    const vinculos = await prisma.obraUser.findMany({
-      where: { userId },
-      select: { obraId: true },
-    })
-    obraIds = vinculos.map((v) => v.obraId)
-  }
-
   const cronogramas = await prisma.cronograma.findMany({
-    where: {
-      ...(obraIds ? { obraId: { in: obraIds } } : {}),
-      obra: { ativa: true },
-    },
+    where: { obra: { ...filtroObrasVisiveis(session), ativa: true } },
     orderBy: [{ obraId: "asc" }, { versao: "desc" }],
     distinct: ["obraId"],
     select: { id: true, versao: true, obraId: true, obra: { select: { nome: true } } },
@@ -88,20 +77,8 @@ export async function POST(_req: NextRequest) {
   const limite = new Date(hoje)
   limite.setUTCDate(limite.getUTCDate() + dias)
 
-  let obraIds: number[] | undefined
-  if (session.user.perfil === "GESTAO") {
-    const vinculos = await prisma.obraUser.findMany({
-      where: { userId },
-      select: { obraId: true },
-    })
-    obraIds = vinculos.map((v) => v.obraId)
-  }
-
   const cronogramas = await prisma.cronograma.findMany({
-    where: {
-      ...(obraIds ? { obraId: { in: obraIds } } : {}),
-      obra: { ativa: true },
-    },
+    where: { obra: { ...filtroObrasVisiveis(session), ativa: true } },
     orderBy: [{ obraId: "asc" }, { versao: "desc" }],
     distinct: ["obraId"],
     select: { id: true, obraId: true, obra: { select: { nome: true } } },

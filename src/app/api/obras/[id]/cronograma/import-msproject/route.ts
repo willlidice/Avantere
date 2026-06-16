@@ -3,16 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { parseStringPromise } from "xml2js"
-
-async function verificarAcesso(userId: number, obraId: number, perfil: string) {
-  if (perfil === "GESTAO") {
-    const vinculo = await prisma.obraUser.findUnique({
-      where: { userId_obraId: { userId, obraId } },
-    })
-    return !!vinculo
-  }
-  return perfil === "ADMIN" || perfil === "SUPER_ADMIN"
-}
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function str(val: any): string {
@@ -40,8 +31,8 @@ export async function POST(req: NextRequest, { params }: { params: { id: string 
     return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
 
   const obraId = parseInt(params.id)
-  const temAcesso = await verificarAcesso(parseInt(session.user.id), obraId, session.user.perfil)
-  if (!temAcesso) return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
 
   const formData = await req.formData()
   const arquivo = formData.get("arquivo") as File | null

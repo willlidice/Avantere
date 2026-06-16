@@ -2,32 +2,17 @@ import { NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { filtroObrasVisiveis } from "@/lib/acesso-obra"
 
 export async function GET() {
   const session = await getServerSession(authOptions)
   if (!session) return NextResponse.json({ erro: "Não autenticado" }, { status: 401 })
   if (session.user.perfil === "PRODUCAO") return NextResponse.json({ erro: "Sem permissão" }, { status: 403 })
 
-  const userId = parseInt(session.user.id)
-  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil)
-  const orgId = session.user.organizacaoId
-
-  // Obras acessíveis — ADMIN vê da própria org, SUPER_ADMIN vê todas
-  const obrasAcessiveis =
-    session.user.perfil === "SUPER_ADMIN"
-      ? await prisma.obra.findMany({ orderBy: { nome: "asc" } })
-      : isAdmin
-      ? await prisma.obra.findMany({
-          where: { organizacaoId: orgId ?? undefined },
-          orderBy: { nome: "asc" },
-        })
-      : await prisma.obra.findMany({
-          where: {
-            organizacaoId: orgId ?? undefined,
-            usuarios: { some: { userId } },
-          },
-          orderBy: { nome: "asc" },
-        })
+  const obrasAcessiveis = await prisma.obra.findMany({
+    where: filtroObrasVisiveis(session),
+    orderBy: { nome: "asc" },
+  })
 
   const obraIds = obrasAcessiveis.map((o) => o.id)
   const totalObras = obrasAcessiveis.length

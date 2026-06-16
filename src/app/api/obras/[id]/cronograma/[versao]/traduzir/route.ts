@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { checkRateLimit } from "@/lib/rate-limit"
+import { temAcessoObra } from "@/lib/acesso-obra"
 import Anthropic from "@anthropic-ai/sdk"
 
 const client = new Anthropic()
@@ -24,7 +25,7 @@ export async function POST(
   { params }: { params: { id: string; versao: string } }
 ) {
   const session = await getServerSession(authOptions)
-  if (!session || !["ADMIN", "GESTAO"].includes(session.user.perfil)) {
+  if (!session || !["ADMIN", "SUPER_ADMIN", "GESTAO"].includes(session.user.perfil)) {
     return NextResponse.json({ erro: "Sem permissão" }, { status: 403 })
   }
 
@@ -50,12 +51,8 @@ export async function POST(
     return NextResponse.json({ erro: "Parâmetros inválidos" }, { status: 400 })
   }
 
-  if (session.user.perfil === "GESTAO") {
-    const vinculo = await prisma.obraUser.findUnique({
-      where: { userId_obraId: { userId: parseInt(session.user.id), obraId } },
-    })
-    if (!vinculo) return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
-  }
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Acesso negado" }, { status: 403 })
 
   const obra = await prisma.obra.findUnique({ where: { id: obraId }, select: { nome: true } })
   if (!obra) return NextResponse.json({ erro: "Obra não encontrada" }, { status: 404 })

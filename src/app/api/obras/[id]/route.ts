@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server"
 import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 export async function GET(
   _: NextRequest,
@@ -11,26 +12,14 @@ export async function GET(
   if (!session) return NextResponse.json({ erro: "Não autorizado" }, { status: 401 })
 
   const obraId = parseInt(params.id)
-  const isAdmin = ["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil)
-
-  if (!isAdmin) {
-    const vinculo = await prisma.obraUser.findUnique({
-      where: { userId_obraId: { userId: parseInt(session.user.id), obraId } },
-    })
-    if (!vinculo) return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
-  }
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
 
   const obra = await prisma.obra.findUnique({
     where: { id: obraId },
     include: { aditivos: { orderBy: { criadoEm: "asc" } }, documentos: { orderBy: { criadoEm: "desc" } } },
   })
   if (!obra) return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
-
-  // ADMIN verifica se obra pertence à mesma organização
-  const orgId = session.user.organizacaoId
-  if (session.user.perfil === "ADMIN" && orgId && obra.organizacaoId !== orgId) {
-    return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
-  }
 
   return NextResponse.json(obra)
 }
@@ -44,14 +33,8 @@ export async function PUT(
     return NextResponse.json({ erro: "Não autorizado" }, { status: 403 })
 
   const obraId = parseInt(params.id)
-  const orgId = session.user.organizacaoId
-
-  // ADMIN verifica se obra pertence à mesma org
-  if (session.user.perfil === "ADMIN" && orgId) {
-    const obra = await prisma.obra.findUnique({ where: { id: obraId }, select: { organizacaoId: true } })
-    if (!obra || obra.organizacaoId !== orgId)
-      return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
-  }
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Não encontrado" }, { status: 404 })
 
   const body = await req.json()
   const data: Record<string, unknown> = {}

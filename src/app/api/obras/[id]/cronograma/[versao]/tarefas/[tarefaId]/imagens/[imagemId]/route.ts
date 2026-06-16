@@ -3,6 +3,7 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { deletarDoR2 } from "@/lib/r2"
+import { temAcessoObra } from "@/lib/acesso-obra"
 
 type Params = { params: { id: string; versao: string; tarefaId: string; imagemId: string } }
 
@@ -21,12 +22,8 @@ export async function DELETE(_req: NextRequest, { params }: Params) {
     return NextResponse.json({ erro: "Parâmetros inválidos" }, { status: 400 })
   }
 
-  if (session.user.perfil === "GESTAO") {
-    const vinculo = await prisma.obraUser.findFirst({
-      where: { obraId, userId: parseInt(session.user.id) },
-    })
-    if (!vinculo) return NextResponse.json({ erro: "Sem acesso à obra" }, { status: 403 })
-  }
+  if (!(await temAcessoObra(session, obraId)))
+    return NextResponse.json({ erro: "Sem acesso à obra" }, { status: 403 })
 
   const imagem = await prisma.tarefaImagem.findFirst({
     where: {

@@ -2,13 +2,16 @@ import { getServerSession } from "next-auth"
 import { authOptions } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { notFound, redirect } from "next/navigation"
+import { temAcessoObra } from "@/lib/acesso-obra"
 import { EditarObraForm } from "./editar-obra-form"
 
 export default async function EditarObraPage({ params }: { params: { id: string } }) {
   const session = await getServerSession(authOptions)
-  if (!session || session.user.perfil !== "ADMIN") redirect("/obras")
+  if (!session || !["ADMIN", "SUPER_ADMIN"].includes(session.user.perfil)) redirect("/obras")
 
   const obraId = parseInt(params.id)
+  if (!(await temAcessoObra(session, obraId))) redirect("/obras")
+
   const obra = await prisma.obra.findUnique({
     where: { id: obraId },
     include: {
@@ -24,7 +27,7 @@ export default async function EditarObraPage({ params }: { params: { id: string 
   })
 
   const todosUsuarios = await prisma.user.findMany({
-    where: { ativo: true },
+    where: { ativo: true, organizacaoId: obra.organizacaoId },
     select: { id: true, nome: true, email: true, perfil: true },
     orderBy: { nome: "asc" },
   })
