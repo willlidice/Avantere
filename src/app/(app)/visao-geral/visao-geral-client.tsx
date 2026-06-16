@@ -13,10 +13,13 @@ import {
   Loader2,
   ExternalLink,
   Sparkles,
+  HardDrive,
+  Database,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { useIdioma } from "@/contexts/idioma-context"
 import { t } from "@/lib/i18n"
+import { formatarBytes } from "@/lib/formatadores"
 
 interface ObraStat {
   obraId: number
@@ -54,6 +57,13 @@ interface UsoIAData {
   gastoMes: string | null
   erroAnthropic: string | null
   linkDashboard: string
+}
+
+interface UsoDiscoData {
+  vps: { usadoBytes: number; totalBytes: number; pct: number } | null
+  erroVps: string | null
+  r2: { usadoBytes: number; totalObjetos: number } | null
+  erroR2: string | null
 }
 
 function BarraProgresso({ valor, total, cor }: { valor: number; total: number; cor: string }) {
@@ -111,7 +121,7 @@ function CreditosIA({ perfil }: { perfil: string }) {
       .finally(() => setCarregando(false))
   }, [])
 
-  if (perfil !== "ADMIN") return null
+  if (perfil !== "SUPER_ADMIN") return null
 
   return (
     <div className="bg-white border rounded-xl p-5 space-y-4">
@@ -173,6 +183,89 @@ function CreditosIA({ perfil }: { perfil: string }) {
           )}
         </div>
       ) : null}
+    </div>
+  )
+}
+
+function UsoDisco({ perfil }: { perfil: string }) {
+  const [dados, setDados] = useState<UsoDiscoData | null>(null)
+  const [carregando, setCarregando] = useState(true)
+
+  useEffect(() => {
+    if (perfil !== "SUPER_ADMIN") return
+    fetch("/api/sistema/disco")
+      .then((r) => r.json())
+      .then((d) => setDados(d))
+      .catch(() => setDados(null))
+      .finally(() => setCarregando(false))
+  }, [perfil])
+
+  if (perfil !== "SUPER_ADMIN") return null
+
+  return (
+    <div className="bg-white border rounded-xl p-5 space-y-4">
+      <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+        <HardDrive className="h-4 w-4 text-slate-500" />
+        Infraestrutura — Uso de disco
+      </h2>
+
+      {carregando ? (
+        <div className="flex items-center gap-2 text-gray-400 text-xs py-1">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          Carregando uso de disco...
+        </div>
+      ) : dados ? (
+        <div className="space-y-4">
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600 flex items-center gap-1.5">
+                <HardDrive className="h-3.5 w-3.5 text-gray-400" />
+                VPS (servidor)
+              </span>
+              {dados.vps && (
+                <span className="font-semibold text-gray-700">
+                  {formatarBytes(dados.vps.usadoBytes)} de {formatarBytes(dados.vps.totalBytes)}
+                </span>
+              )}
+            </div>
+            {dados.vps ? (
+              <BarraProgresso
+                valor={dados.vps.usadoBytes}
+                total={dados.vps.totalBytes}
+                cor={dados.vps.pct > 85 ? "bg-red-500" : dados.vps.pct > 65 ? "bg-amber-500" : "bg-emerald-500"}
+              />
+            ) : (
+              <p className="text-xs text-gray-400">{dados.erroVps ?? "Sem dados"}</p>
+            )}
+            <p className="text-[10px] text-gray-400">
+              Disco total do servidor (compartilhado entre todos os apps hospedados nele)
+            </p>
+          </div>
+
+          <div className="space-y-1.5 pt-2 border-t">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-gray-600 flex items-center gap-1.5">
+                <Database className="h-3.5 w-3.5 text-gray-400" />
+                Cloudflare R2 (arquivos)
+              </span>
+              {dados.r2 && (
+                <span className="font-semibold text-gray-700">{formatarBytes(dados.r2.usadoBytes)}</span>
+              )}
+            </div>
+            {dados.r2 ? (
+              <p className="text-xs text-gray-500">
+                {dados.r2.totalObjetos.toLocaleString("pt-BR")} arquivo{dados.r2.totalObjetos === 1 ? "" : "s"} armazenado
+                {dados.r2.totalObjetos === 1 ? "" : "s"}
+              </p>
+            ) : (
+              <p className="text-xs text-gray-400">{dados.erroR2 ?? "Sem dados"}</p>
+            )}
+            <p className="text-[10px] text-gray-400">R2 não possui limite de quota fixo (cobrança por uso)</p>
+          </div>
+        </div>
+      ) : (
+        <p className="text-xs text-gray-400">Não foi possível carregar os dados de uso de disco</p>
+      )}
     </div>
   )
 }
@@ -394,8 +487,11 @@ export function VisaoGeralClient({ perfil }: { perfil: string }) {
         </div>
       )}
 
-      {/* Créditos Claude — só para ADMIN */}
+      {/* Créditos Claude — só para SUPER_ADMIN */}
       <CreditosIA perfil={perfil} />
+
+      {/* Uso de disco (VPS + R2) — só para SUPER_ADMIN */}
+      <UsoDisco perfil={perfil} />
     </div>
   )
 }
