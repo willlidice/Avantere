@@ -1,4 +1,4 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3"
+import { S3Client, PutObjectCommand, DeleteObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3"
 
 const r2 = new S3Client({
   region: "auto",
@@ -38,6 +38,22 @@ export async function uploadArquivoParaR2(
     }),
   )
   return `${process.env.R2_PUBLIC_URL}/${chave}`
+}
+
+export async function baixarDoR2(chave: string): Promise<Buffer> {
+  const resp = await r2.send(
+    new GetObjectCommand({
+      Bucket: process.env.R2_BUCKET_NAME!,
+      Key: chave,
+    }),
+  )
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const stream = resp.Body as any
+  const chunks: Buffer[] = []
+  for await (const chunk of stream) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+  }
+  return Buffer.concat(chunks)
 }
 
 export async function deletarDoR2(chave: string): Promise<void> {

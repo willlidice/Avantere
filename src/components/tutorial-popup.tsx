@@ -176,7 +176,7 @@ export function TutorialPopup() {
         {/* Barra de progresso */}
         <div className="h-1 bg-gray-100">
           <div
-            className="h-full bg-amber-500 transition-all duration-300"
+            className="h-full bg-primary transition-all duration-300"
             style={{ width: `${progresso}%` }}
           />
         </div>
@@ -244,7 +244,7 @@ export function TutorialPopup() {
             <Button
               size="sm"
               onClick={proximo}
-              className="bg-amber-500 hover:bg-amber-600 text-white"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
               {passo === PASSOS.length - 1 ? "Concluir" : "Próximo"}
               {passo < PASSOS.length - 1 && <ChevronRight className="h-4 w-4 ml-1" />}
@@ -260,7 +260,7 @@ export function TutorialPopup() {
               onClick={() => setPasso(i)}
               className={`rounded-full transition-all ${
                 i === passo
-                  ? "w-4 h-1.5 bg-amber-500"
+                  ? "w-4 h-1.5 bg-primary"
                   : "w-1.5 h-1.5 bg-gray-200 hover:bg-gray-300"
               }`}
             />

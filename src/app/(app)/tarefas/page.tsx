@@ -681,7 +681,7 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
         <div className="flex gap-2 flex-wrap">
           <Button
             size="sm"
-            className="bg-amber-500 hover:bg-amber-600 text-white gap-1.5"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5"
             disabled={uploadandoFoto}
             onClick={() => inputCameraRef.current?.click()}
           >
@@ -1134,8 +1134,8 @@ export default function TarefasPage() {
                 onClick={() => setFiltroTempo(valor)}
                 className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                   filtroTempo === valor
-                    ? "bg-amber-500 text-white border-amber-500 shadow-sm"
-                    : "bg-white text-gray-600 border-gray-200 hover:border-amber-300 hover:text-amber-600"
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-white text-gray-600 border-gray-200 hover:border-primary/40 hover:text-primary"
                 }`}
               >
                 <Icon className="h-3.5 w-3.5" />
@@ -1155,7 +1155,7 @@ export default function TarefasPage() {
                   <MapPin className="h-3.5 w-3.5" />
                   <span className="font-medium">Local</span>
                   {filtroLocal && (
-                    <span className="bg-amber-500 text-white rounded-full px-1.5 py-0.5 text-[10px] leading-none">
+                    <span className="bg-primary text-primary-foreground rounded-full px-1.5 py-0.5 text-[10px] leading-none">
                       {filtroLocal}
                     </span>
                   )}

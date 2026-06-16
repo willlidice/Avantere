@@ -5,6 +5,8 @@ const nextConfig = {
   output: "standalone",
   eslint: { ignoreDuringBuilds: true },
   typescript: { ignoreBuildErrors: true },
+  // pdfjs-dist usa worker/APIs de browser — não pode ser bundlado pelo webpack server-side
+  serverExternalPackages: ["pdfjs-dist"],
   async headers() {
     return [
       {
@@ -37,8 +39,13 @@ const nextConfig = {
       },
     ]
   },
-  webpack: (config) => {
+  webpack: (config, { isServer }) => {
     config.resolve.alias.canvas = false
+    if (isServer) {
+      // pdfjs-dist não pode ser bundlado server-side — usa APIs de browser
+      const existing = Array.isArray(config.externals) ? config.externals : []
+      config.externals = [...existing, "pdfjs-dist"]
+    }
     return config
   },
 }

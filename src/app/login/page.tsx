@@ -141,7 +141,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={carregando}
-              className="w-full h-11 bg-amber-600 hover:bg-amber-700 text-white text-sm font-semibold rounded-[3px] transition-colors tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full h-11 bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-semibold rounded-[3px] transition-colors tracking-wide disabled:opacity-60 disabled:cursor-not-allowed"
             >
               {carregando ? "Entrando..." : "Entrar"}
             </button>

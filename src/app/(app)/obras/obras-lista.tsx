@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Pencil, ToggleLeft, ToggleRight, Plus, CalendarDays, Building2, X, MapPin, User, FileText, DollarSign, Calendar } from "lucide-react"
+import { Pencil, ToggleLeft, ToggleRight, Plus, CalendarDays, Building2, X, MapPin, User, FileText, DollarSign, Calendar, ClipboardList, ChevronRight } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import {
@@ -50,23 +50,61 @@ function formatarMoeda(valor: number | null | undefined) {
   return valor.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })
 }
 
+const FERRAMENTAS_OBRA = [
+  {
+    href: (id: number) => `/obras/${id}/cronograma`,
+    icone: CalendarDays,
+    label: "Cronograma",
+    descricao: "Planejamento e tarefas",
+    cor: "text-amber-600",
+    fundo: "bg-amber-50 hover:bg-amber-100 border-amber-200",
+  },
+  {
+    href: (id: number) => `/obras/${id}/levantamento`,
+    icone: ClipboardList,
+    label: "Levantamento",
+    descricao: "Materiais e quantitativos",
+    cor: "text-blue-600",
+    fundo: "bg-blue-50 hover:bg-blue-100 border-blue-200",
+  },
+]
+
 function CardDetalheObra({ obra, onFechar }: { obra: Obra; onFechar: () => void }) {
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onFechar() }}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
+      <DialogContent className="max-w-lg p-0 overflow-hidden">
+        {/* Cabeçalho */}
+        <DialogHeader className="px-5 pt-5 pb-3 border-b">
           <DialogTitle className="flex items-center gap-2">
             <Building2 className="h-5 w-5 text-amber-600 shrink-0" />
             <span className="truncate">{obra.nome}</span>
-          </DialogTitle>
-        </DialogHeader>
-        <div className="space-y-4 mt-1">
-          <div className="flex items-center gap-2">
-            <Badge variant={obra.ativa ? "default" : "secondary"}>
+            <Badge variant={obra.ativa ? "default" : "secondary"} className="ml-auto shrink-0 text-[10px]">
               {obra.ativa ? "Ativa" : "Inativa"}
             </Badge>
-          </div>
+          </DialogTitle>
+        </DialogHeader>
 
+        {/* Barra de ferramentas */}
+        <div className="px-5 py-3 border-b bg-gray-50">
+          <p className="text-[10px] text-gray-400 uppercase mb-2 font-medium tracking-wide">Ferramentas</p>
+          <div className="grid grid-cols-2 gap-2">
+            {FERRAMENTAS_OBRA.map(({ href, icone: Icone, label, descricao, cor, fundo }) => (
+              <Link key={label} href={href(obra.id)} onClick={onFechar}>
+                <div className={`flex items-center gap-3 p-3 rounded-lg border cursor-pointer transition-colors ${fundo}`}>
+                  <Icone className={`h-5 w-5 shrink-0 ${cor}`} />
+                  <div className="min-w-0">
+                    <p className={`text-sm font-semibold ${cor}`}>{label}</p>
+                    <p className="text-[10px] text-gray-500 truncate">{descricao}</p>
+                  </div>
+                  <ChevronRight className="h-3.5 w-3.5 text-gray-400 ml-auto shrink-0" />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+
+        {/* Detalhes da obra */}
+        <div className="px-5 py-4 space-y-3">
           <div className="grid grid-cols-2 gap-3">
             {obra.cnpjObra && (
               <div className="bg-gray-50 rounded-lg p-3">
@@ -124,18 +162,6 @@ function CardDetalheObra({ obra, onFechar }: { obra: Obra; onFechar: () => void 
                 <p className="text-sm text-gray-700 leading-relaxed">{obra.escopo}</p>
               </div>
             )}
-          </div>
-
-          <div className="flex gap-2 pt-1">
-            <Link href={`/obras/${obra.id}/cronograma`} className="flex-1">
-              <Button className="w-full" size="sm">
-                <CalendarDays className="h-3.5 w-3.5 mr-1.5" />
-                Ver Cronograma
-              </Button>
-            </Link>
-            <Button variant="outline" size="sm" onClick={onFechar}>
-              Fechar
-            </Button>
           </div>
         </div>
       </DialogContent>

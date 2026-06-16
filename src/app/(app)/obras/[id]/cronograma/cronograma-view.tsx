@@ -1272,7 +1272,7 @@ export function CronogramaView({
             {podeEditar && versaoSelecionada && (
               <Button
                 size="sm"
-                className="h-9 bg-amber-500 hover:bg-amber-600 text-white font-semibold shadow-sm"
+                className="h-9 bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-sm"
                 onClick={() => {
                   setFormNovaTarefa({ idExterno: "", nome: "", local: "", quantidade: "1", unidade: "un", inicio: "", fim: "", responsavel: "" })
                   setErroNovaTarefa(null)
@@ -1471,13 +1471,13 @@ export function CronogramaView({
                   onClick={() => { setFiltro(valor); setSelecionadas(new Set()) }}
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                     ativo
-                      ? "bg-blue-600 text-white border-blue-600 shadow-sm"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600"
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-white text-gray-600 border-gray-200 hover:border-primary/40 hover:text-primary"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
                   {label}
-                  <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${ativo ? "bg-blue-500 text-white" : "bg-gray-100 text-gray-500"}`}>
+                  <span className={`ml-0.5 px-1.5 py-0.5 rounded-full text-[10px] font-semibold ${ativo ? "bg-primary/80 text-primary-foreground" : "bg-gray-100 text-gray-500"}`}>
                     {contagem}
                   </span>
                 </button>
@@ -1686,7 +1686,7 @@ export function CronogramaView({
                   </div>
 
                   <div
-                    className="border rounded-lg overflow-auto"
+                    className="bg-white border rounded-lg overflow-auto"
                     style={{ maxHeight: "calc(100vh - 300px)" }}
                   >
                     <div style={{ zoom: `${zoom}%` }}>
@@ -2276,7 +2276,7 @@ export function CronogramaView({
                   <div className="flex items-center gap-2 flex-wrap">
                     <Button
                       size="sm"
-                      className="bg-amber-500 hover:bg-amber-600 text-white gap-1.5"
+                      className="bg-primary hover:bg-primary/90 text-primary-foreground gap-1.5"
                       onClick={() => {
                         setTarefaDetalhe(null)
                         abrirGaleria(tarefaDetalhe)

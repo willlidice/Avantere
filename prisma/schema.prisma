@@ -101,6 +101,7 @@ model Obra {
   valorContrato Decimal?     @db.Decimal(15, 2)
   aditivos      Aditivo[]
   documentos    Documento[]
+  levantamentos LevantamentoJob[]
 }
 
 model Aditivo {
@@ -243,4 +244,61 @@ enum Perfil {
   ADMIN
   GESTAO
   PRODUCAO
+}
+
+enum StatusLevantamento {
+  AGUARDANDO
+  PROCESSANDO
+  AGUARDANDO_RESPOSTAS
+  CONCLUIDO
+  ERRO
+  APROVADO
+}
+
+model LevantamentoJob {
+  id            Int                   @id @default(autoincrement())
+  obraId        Int
+  obra          Obra                  @relation(fields: [obraId], references: [id], onDelete: Cascade)
+  status        StatusLevantamento    @default(AGUARDANDO)
+  scoreGeral    Float?
+  aprovadoPorId Int?
+  aprovadoEm    DateTime?
+  criadoPorId   Int
+  criadoEm      DateTime              @default(now())
+  observacoes   String?
+  perguntas     Json?
+  arquivos      ArquivoLevantamento[]
+  itens         ItemLevantamento[]
+
+  @@index([obraId])
+}
+
+model ArquivoLevantamento {
+  id       Int             @id @default(autoincrement())
+  jobId    Int
+  job      LevantamentoJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  nome     String
+  url      String
+  tipo     String
+  tamanho  Int
+  criadoEm DateTime        @default(now())
+
+  @@index([jobId])
+}
+
+model ItemLevantamento {
+  id             Int             @id @default(autoincrement())
+  jobId          Int
+  job            LevantamentoJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+  categoria      String
+  descricao      String
+  quantidade     Float?
+  unidade        String?
+  scoreConfianca  Float           @default(0.5)
+  arquivoOrigem   String?
+  memoriaCalculo  String?
+  revisado        Boolean         @default(false)
+  editado         Boolean         @default(false)
+
+  @@index([jobId])
 }

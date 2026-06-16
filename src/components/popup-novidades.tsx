@@ -4,23 +4,15 @@ import { useEffect, useState } from "react"
 import { X, Sparkles, CheckCircle2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-const VERSAO_ATUAL = "2.1.0"
+const VERSAO_ATUAL = "2.2.0"
 const STORAGE_KEY = `avantere_novidades_${VERSAO_ATUAL}`
 
 const NOVIDADES = [
-  { texto: "Cabeçalho do cronograma exibe dados completos da obra (CNPJ, cliente, contrato)" },
-  { texto: "Dashboard com tarefas atrasadas clicáveis e detalhadas" },
-  { texto: "Obras: card de detalhes ao clicar no nome" },
-  { texto: "Navegação mobile melhorada com menu lateral e bottom bar" },
-  { texto: "Botão Sair disponível na página Configurações" },
-  { texto: "Toggle para visualizar senha na tela de login" },
-  { texto: "Email de boas-vindas enviado automaticamente ao criar novo usuário" },
-  { texto: "Popup de tarefa traduzida com opção de expandir a tela" },
-  { texto: "Qualidade do JPG salvo melhorada (3× resolução)" },
-  { texto: "Botão 'Adicionar Foto' destacado em todas as tarefas (câmera e arquivo)" },
-  { texto: "Exportar cronograma por e-mail diretamente do sistema" },
-  { texto: "Página de Sugestões e Melhorias para envio de feedback" },
-  { texto: "Histórico de versões disponível nas Configurações do Admin" },
+  { texto: "Levantamento de Materiais: extração de quantitativos via IA a partir de PDF e XLSX" },
+  { texto: "Barra de ferramentas no card da obra — acesse Cronograma e Levantamento diretamente" },
+  { texto: "PDF do levantamento removido automaticamente do armazenamento após processamento" },
+  { texto: "Aviso de ferramenta em teste exibido sempre ao acessar o Levantamento" },
+  { texto: "Botão de Levantamento removido do cronograma — navegação centralizada no card da obra" },
 ]
 
 export function PopupNovidades() {
@@ -74,7 +66,7 @@ export function PopupNovidades() {
 
         {/* Footer */}
         <div className="px-6 pb-5 pt-3 border-t">
-          <Button onClick={fechar} className="w-full bg-amber-500 hover:bg-amber-600 text-white">
+          <Button onClick={fechar} className="w-full bg-primary hover:bg-primary/90 text-primary-foreground">
             Entendido!
           </Button>
         </div>

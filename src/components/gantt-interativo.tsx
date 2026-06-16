@@ -1,7 +1,7 @@
 "use client"
 
 import { useRef, useState, useCallback, useEffect } from "react"
-import { Loader2, GripVertical, AlertTriangle, Users, RotateCcw } from "lucide-react"
+import { Loader2, GripVertical, AlertTriangle, Users, RotateCcw, Maximize2, Minimize2 } from "lucide-react"
 
 interface TarefaGantt {
   id: number
@@ -103,8 +103,24 @@ export function GanttInterativo({ tarefas, relacoes = [], podeEditar, obraId, ve
   const [modoCor, setModoCor] = useState<"status" | "responsavel">("status")
   const [historicoAcoes, setHistoricoAcoes] = useState<Array<{ id: number; inicio: string; fim: string }[]>>([])
   const [desfazendo, setDesfazendo] = useState(false)
+  const [telaCheia, setTelaCheia] = useState(false)
   const tarefasRef = useRef(tarefas)
   useEffect(() => { tarefasRef.current = tarefas }, [tarefas])
+
+  useEffect(() => {
+    function onFullscreenChange() { setTelaCheia(!!document.fullscreenElement) }
+    document.addEventListener("fullscreenchange", onFullscreenChange)
+    return () => document.removeEventListener("fullscreenchange", onFullscreenChange)
+  }, [])
+
+  async function toggleTelaCheia() {
+    if (!containerRef.current) return
+    if (!document.fullscreenElement) {
+      await containerRef.current.requestFullscreen()
+    } else {
+      await document.exitFullscreen()
+    }
+  }
 
   useEffect(() => {
     if (!containerRef.current) return
@@ -500,7 +516,7 @@ export function GanttInterativo({ tarefas, relacoes = [], podeEditar, obraId, ve
   }
 
   return (
-    <div className="relative select-none" ref={containerRef}>
+    <div className={`relative select-none${telaCheia ? " bg-white p-4 overflow-auto" : ""}`} ref={containerRef}>
       {renderTooltip()}
 
       {/* Diálogo de propagação */}
@@ -556,7 +572,7 @@ export function GanttInterativo({ tarefas, relacoes = [], podeEditar, obraId, ve
       )}
 
       {/* Toolbar de toggles do Gantt */}
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
+      <div className="flex items-center gap-2 mb-2 flex-wrap" style={telaCheia ? { paddingTop: "4px" } : undefined}>
         {podeEditar && (
           <button
             onClick={desfazer}
@@ -606,6 +622,15 @@ export function GanttInterativo({ tarefas, relacoes = [], podeEditar, obraId, ve
             Responsável
           </button>
         </div>
+
+        <button
+          onClick={toggleTelaCheia}
+          className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-colors"
+          title={telaCheia ? "Sair da tela cheia (Esc)" : "Expandir para tela cheia"}
+        >
+          {telaCheia ? <Minimize2 className="h-3 w-3" /> : <Maximize2 className="h-3 w-3" />}
+          {telaCheia ? "Sair" : "Tela cheia"}
+        </button>
       </div>
 
       <div className="overflow-x-auto border rounded-lg bg-white">
