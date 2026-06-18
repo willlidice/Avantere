@@ -3,14 +3,14 @@ FROM node:20-alpine AS source
 WORKDIR /src
 RUN apk add --no-cache git
 # Atualizar o sufixo a cada deploy para forçar novo clone
-RUN echo "bust-20260616-003" && \
+RUN echo "bust-20260617-001" && \
     git clone --depth 1 --branch master https://github.com/willlidice/Avantere .
 
 # ── 2. Dependências ───────────────────────────────────────────────────────────
 FROM node:20-alpine AS deps
 WORKDIR /app
 COPY --from=source /src/package.json /src/package-lock.json ./
-RUN npm ci
+RUN npm install --legacy-peer-deps
 
 # ── 3. Build ──────────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder
