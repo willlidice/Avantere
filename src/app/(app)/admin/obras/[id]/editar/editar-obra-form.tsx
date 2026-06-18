@@ -21,6 +21,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 
 interface Usuario {
   id: number
@@ -128,6 +138,11 @@ export function EditarObraForm({ obra, vinculados: v, disponiveis: d }: EditarOb
   const [erroVinculo, setErroVinculo] = useState("")
   const [erroAditivo, setErroAditivo] = useState("")
   const [salvando, setSalvando] = useState(false)
+
+  // Confirmações de deleção
+  const [confirmarRemoverUsuarioId, setConfirmarRemoverUsuarioId] = useState<number | null>(null)
+  const [confirmarRemoverAditivoId, setConfirmarRemoverAditivoId] = useState<number | null>(null)
+  const [confirmarRemoverDocumentoId, setConfirmarRemoverDocumentoId] = useState<number | null>(null)
 
   async function salvarObra(e: React.FormEvent) {
     e.preventDefault()
@@ -332,7 +347,7 @@ export function EditarObraForm({ obra, vinculados: v, disponiveis: d }: EditarOb
               </div>
               {dataFimEfetiva && ultimoAditivoPrazo && (
                 <div className="sm:col-span-2">
-                  <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-md px-3 py-1.5 flex items-center gap-1.5">
+                  <p className="text-xs text-amber-700 dark:text-blue-300 bg-amber-50 dark:bg-blue-950/20 border border-amber-200 dark:border-blue-800/50 rounded-md px-3 py-1.5 flex items-center gap-1.5">
                     <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
                     Data fim efetiva: <strong>{formatarData(dataFimEfetiva)}</strong> (pelo último aditivo de prazo)
                   </p>
@@ -389,7 +404,7 @@ export function EditarObraForm({ obra, vinculados: v, disponiveis: d }: EditarOb
                       {a.descricao && <p className="text-xs text-gray-500 mt-0.5">{a.descricao}</p>}
                       <p className="text-xs text-gray-400">Criado em {formatarData(a.criadoEm)}</p>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => removerAditivo(a.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => setConfirmarRemoverAditivoId(a.id)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </li>
@@ -476,7 +491,7 @@ export function EditarObraForm({ obra, vinculados: v, disponiveis: d }: EditarOb
                         <p className="text-xs text-gray-400">{formatarTamanho(doc.tamanho)} · {formatarData(doc.criadoEm)}</p>
                       </div>
                     </div>
-                    <Button variant="ghost" size="sm" onClick={() => removerDocumento(doc.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => setConfirmarRemoverDocumentoId(doc.id)}>
                       <Trash2 className="h-4 w-4 text-red-500" />
                     </Button>
                   </li>
@@ -528,7 +543,7 @@ export function EditarObraForm({ obra, vinculados: v, disponiveis: d }: EditarOb
                   </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="secondary">{PERFIL_LABEL[u.perfil]}</Badge>
-                    <Button variant="ghost" size="sm" onClick={() => removerUsuario(u.id)}>
+                    <Button variant="ghost" size="sm" onClick={() => setConfirmarRemoverUsuarioId(u.id)}>
                       <UserMinus className="h-4 w-4 text-red-500" />
                     </Button>
                   </div>
@@ -567,6 +582,66 @@ export function EditarObraForm({ obra, vinculados: v, disponiveis: d }: EditarOb
           </div>
         </CardContent>
       </Card>
+
+      <AlertDialog open={confirmarRemoverUsuarioId !== null} onOpenChange={(open) => { if (!open) setConfirmarRemoverUsuarioId(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remover usuário da obra?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O acesso deste usuário a esta obra será revogado. É possível revincular depois.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => { if (confirmarRemoverUsuarioId !== null) { removerUsuario(confirmarRemoverUsuarioId); setConfirmarRemoverUsuarioId(null) } }}
+            >
+              Remover
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmarRemoverAditivoId !== null} onOpenChange={(open) => { if (!open) setConfirmarRemoverAditivoId(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir aditivo?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O aditivo será excluído permanentemente. Isso pode alterar o prazo ou valor contratual registrado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => { if (confirmarRemoverAditivoId !== null) { removerAditivo(confirmarRemoverAditivoId); setConfirmarRemoverAditivoId(null) } }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={confirmarRemoverDocumentoId !== null} onOpenChange={(open) => { if (!open) setConfirmarRemoverDocumentoId(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir documento?</AlertDialogTitle>
+            <AlertDialogDescription>
+              O arquivo será removido permanentemente do sistema e não poderá ser recuperado.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => { if (confirmarRemoverDocumentoId !== null) { removerDocumento(confirmarRemoverDocumentoId); setConfirmarRemoverDocumentoId(null) } }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

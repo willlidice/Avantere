@@ -74,7 +74,7 @@ const HISTORICO = [
 ]
 
 const TIPO_COR: Record<string, string> = {
-  major: "bg-amber-100 text-amber-800 border-amber-300",
+  major: "bg-amber-100 dark:bg-blue-900/40 text-amber-800 dark:text-blue-200 border-amber-300 dark:border-blue-700",
   feature: "bg-blue-100 text-blue-800 border-blue-300",
   fix: "bg-green-100 text-green-800 border-green-300",
 }
@@ -103,7 +103,7 @@ export default async function HistoricoPage() {
           Admin
         </p>
         <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-          <Tag className="h-6 w-6 text-amber-600" />
+          <Tag className="h-6 w-6 text-amber-600 dark:text-blue-400" />
           Histórico de Versões
         </h1>
         <p className="text-sm text-muted-foreground mt-1">

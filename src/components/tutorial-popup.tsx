@@ -32,7 +32,7 @@ interface Passo {
 const PASSOS: Passo[] = [
   {
     icon: HardHat,
-    iconCor: "bg-amber-500",
+    iconCor: "bg-amber-500 dark:bg-blue-600",
     titulo: "Bem-vindo ao Avantere!",
     descricao: "Plataforma de gestão de cronogramas de obra com tradução inteligente por IA.",
     detalhes: [
@@ -210,7 +210,7 @@ export function TutorialPopup() {
           <ul className="space-y-2">
             {atual.detalhes.map((d, i) => (
               <li key={i} className="flex gap-2.5 text-sm text-gray-700">
-                <CheckCircle2 className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                <CheckCircle2 className="h-4 w-4 text-amber-500 dark:text-blue-400 shrink-0 mt-0.5" />
                 <span className="leading-snug">{d}</span>
               </li>
             ))}

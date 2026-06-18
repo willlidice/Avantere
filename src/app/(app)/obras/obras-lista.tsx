@@ -58,8 +58,8 @@ const FERRAMENTAS_OBRA = [
     icone: CalendarDays,
     label: "Cronograma",
     descricao: "Planejamento e tarefas",
-    cor: "text-amber-600",
-    fundo: "bg-amber-50 hover:bg-amber-100 border-amber-200",
+    cor: "text-amber-600 dark:text-blue-400",
+    fundo: "bg-amber-50 hover:bg-amber-100 border-amber-200 dark:bg-blue-950/20 dark:hover:bg-blue-900/30 dark:border-blue-800/50",
   },
   {
     href: (id: number) => `/obras/${id}/levantamento`,
@@ -74,11 +74,11 @@ const FERRAMENTAS_OBRA = [
 function CardDetalheObra({ obra, onFechar }: { obra: Obra; onFechar: () => void }) {
   return (
     <Dialog open onOpenChange={(open) => { if (!open) onFechar() }}>
-      <DialogContent className="max-w-lg p-0 overflow-hidden">
+      <DialogContent className="max-w-[calc(100vw-2rem)] sm:max-w-lg p-0 overflow-hidden">
         {/* Cabeçalho */}
         <DialogHeader className="px-5 pt-5 pb-3 border-b">
           <DialogTitle className="flex items-center gap-2">
-            <Building2 className="h-5 w-5 text-amber-600 shrink-0" />
+            <Building2 className="h-5 w-5 text-amber-600 dark:text-blue-400 shrink-0" />
             <span className="truncate">{obra.nome}</span>
             <Badge variant={obra.ativa ? "default" : "secondary"} className="ml-auto shrink-0 text-[10px]">
               {obra.ativa ? "Ativa" : "Inativa"}
@@ -107,7 +107,7 @@ function CardDetalheObra({ obra, onFechar }: { obra: Obra; onFechar: () => void 
 
         {/* Detalhes da obra */}
         <div className="px-5 py-4 space-y-3">
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {obra.cnpjObra && (
               <div className="bg-gray-50 rounded-lg p-3">
                 <p className="text-[10px] text-gray-400 uppercase mb-0.5 flex items-center gap-1">
@@ -151,11 +151,11 @@ function CardDetalheObra({ obra, onFechar }: { obra: Obra; onFechar: () => void 
               </div>
             )}
             {obra.valorContrato != null && (
-              <div className="bg-amber-50 rounded-lg p-3 col-span-2">
-                <p className="text-[10px] text-amber-600 uppercase mb-0.5 flex items-center gap-1">
+              <div className="bg-amber-50 dark:bg-blue-950/20 rounded-lg p-3 col-span-2">
+                <p className="text-[10px] text-amber-600 dark:text-blue-400 uppercase mb-0.5 flex items-center gap-1">
                   <DollarSign className="h-3 w-3" /> Valor do Contrato
                 </p>
-                <p className="text-sm font-semibold text-amber-800">{formatarMoeda(obra.valorContrato)}</p>
+                <p className="text-sm font-semibold text-amber-800 dark:text-blue-300">{formatarMoeda(obra.valorContrato)}</p>
               </div>
             )}
             {obra.escopo && (
@@ -322,7 +322,7 @@ export function ObrasLista({ obras: inicial, isAdmin, isSuperAdmin }: ObrasLista
                 <TableCell>
                   <button
                     onClick={() => setObraDetalhe(obra)}
-                    className="font-medium text-foreground hover:text-amber-600 hover:underline transition-colors text-left"
+                    className="font-medium text-foreground hover:text-amber-600 dark:hover:text-blue-400 hover:underline transition-colors text-left"
                   >
                     {obra.nome}
                   </button>
@@ -391,7 +391,7 @@ export function ObrasLista({ obras: inicial, isAdmin, isSuperAdmin }: ObrasLista
               <div className="flex-1 min-w-0">
                 <button
                   onClick={() => setObraDetalhe(obra)}
-                  className="font-medium text-foreground hover:text-amber-600 text-left"
+                  className="font-medium text-foreground hover:text-amber-600 dark:hover:text-blue-400 text-left"
                 >
                   {obra.nome}
                 </button>

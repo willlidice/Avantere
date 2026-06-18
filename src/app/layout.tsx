@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
+import { Jost, Michroma, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/providers";
 
@@ -7,6 +7,20 @@ const jakarta = Plus_Jakarta_Sans({
   subsets: ["latin"],
   variable: "--font-jakarta",
   weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
+});
+
+const jost = Jost({
+  subsets: ["latin"],
+  variable: "--font-jost",
+  weight: ["400", "500", "600", "700"],
+  display: "swap",
+});
+
+const michroma = Michroma({
+  subsets: ["latin"],
+  variable: "--font-michroma",
+  weight: ["400"],
   display: "swap",
 });
 
@@ -27,7 +41,8 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR">
-      <body className={`${jakarta.variable} font-sans antialiased`}>
+      <body className={`${jakarta.variable} ${jost.variable} ${michroma.variable} font-sans antialiased`}>
+        <script dangerouslySetInnerHTML={{ __html: `try{if(localStorage.getItem('avantere-tema')==='dark')document.documentElement.classList.add('dark')}catch(_){}` }} />
         <Providers>{children}</Providers>
       </body>
     </html>

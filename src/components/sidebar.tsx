@@ -55,27 +55,27 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "hidden md:flex flex-col shrink-0 bg-stone-900 transition-all duration-200",
+        "hidden md:flex flex-col shrink-0 bg-[#0D0D0D] transition-all duration-200",
         colapsado ? "w-14" : "w-56"
       )}
     >
       {/* Header logo + toggle */}
       <div
         className={cn(
-          "flex items-center border-b border-stone-800 h-[60px]",
+          "flex items-center border-b border-[#1e1e1e] h-[60px]",
           colapsado ? "justify-center px-0" : "justify-between px-4"
         )}
       >
         {!colapsado && (
           <div className="flex items-center gap-2.5 min-w-0">
-            <div className="w-6 h-6 bg-amber-600 flex items-center justify-center shrink-0">
+            <div className="w-6 h-6 bg-amber-600 dark:bg-blue-700 flex items-center justify-center shrink-0">
               <span className="text-white font-bold text-xs leading-none">A</span>
             </div>
             <div className="min-w-0">
-              <span className="text-stone-100 font-semibold tracking-[0.09em] uppercase text-xs block">
+              <span className="font-display text-white/90 tracking-[0.15em] uppercase text-xs block">
                 Avantere
               </span>
-              <span className="text-[10px] text-stone-600 block">{t(idioma, "gestaoDeObras")}</span>
+              <span className="text-[10px] text-[#444] block">{t(idioma, "gestaoDeObras")}</span>
             </div>
           </div>
         )}
@@ -86,7 +86,7 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
               <button
                 onClick={toggleColapso}
                 className={cn(
-                  "text-stone-500 hover:text-stone-200 transition-colors p-1.5 rounded",
+                  "text-white/30 hover:text-white/70 transition-colors p-1.5 rounded",
                   colapsado && "mx-auto"
                 )}
               />
@@ -117,8 +117,8 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
                       className={cn(
                         "flex items-center justify-center h-10 w-full transition-all duration-150 border-l-2",
                         active
-                          ? "bg-stone-800 text-amber-400 border-amber-500"
-                          : "text-stone-400 hover:text-stone-200 hover:bg-stone-800/50 border-transparent"
+                          ? "bg-white/5 text-amber-400 dark:text-blue-400 border-amber-500 dark:border-blue-500"
+                          : "text-white/50 hover:text-white hover:bg-white/[0.04] border-transparent"
                       )}
                     />
                   }
@@ -137,8 +137,8 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
               className={cn(
                 "flex items-center gap-2.5 px-3 py-2.5 text-sm transition-all duration-150 border-l-2",
                 active
-                  ? "bg-stone-800 text-amber-400 border-amber-500"
-                  : "text-stone-400 hover:text-stone-200 hover:bg-stone-800/50 border-transparent"
+                  ? "bg-white/5 text-amber-400 dark:text-blue-400 border-amber-500 dark:border-blue-500"
+                  : "text-white/50 hover:text-white hover:bg-white/[0.04] border-transparent"
               )}
             >
               <Icon className="h-4 w-4 shrink-0" />
@@ -151,14 +151,14 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
       {/* Footer usuário */}
       <div
         className={cn(
-          "border-t border-stone-800",
+          "border-t border-[#1e1e1e]",
           colapsado ? "px-1 py-3" : "px-5 py-4"
         )}
       >
         {!colapsado && (
           <>
-            <p className="text-xs font-medium text-stone-300 truncate">{nome}</p>
-            <p className="text-[11px] text-stone-600 mt-0.5 truncate mb-3">{email}</p>
+            <p className="text-xs font-medium text-white/80 truncate">{nome}</p>
+            <p className="text-[11px] text-[#444] mt-0.5 truncate mb-3">{email}</p>
           </>
         )}
 
@@ -168,7 +168,7 @@ export function Sidebar({ perfil, nome, email }: SidebarProps) {
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
                 className={cn(
-                  "flex items-center gap-1.5 text-xs text-stone-500 hover:text-amber-400 transition-colors",
+                  "flex items-center gap-1.5 text-xs text-white/40 hover:text-amber-400 dark:hover:text-blue-400 transition-colors",
                   colapsado && "justify-center w-full"
                 )}
               />
@@ -204,18 +204,18 @@ export function MobileHeader({ perfil, nome }: { perfil: string; nome: string })
 
   return (
     <>
-      <header className="md:hidden bg-stone-900 border-b border-stone-800 px-4 py-3 flex items-center justify-between sticky top-0 z-40">
+      <header className="md:hidden bg-[#0D0D0D] border-b border-[#1e1e1e] px-4 py-3 flex items-center justify-between sticky top-0 z-40">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 bg-amber-600 flex items-center justify-center shrink-0">
+          <div className="w-6 h-6 bg-amber-600 dark:bg-blue-700 flex items-center justify-center shrink-0">
             <span className="text-white font-bold text-xs leading-none">A</span>
           </div>
-          <span className="text-stone-100 font-semibold tracking-[0.09em] uppercase text-xs">
+          <span className="font-display text-white/90 tracking-[0.15em] uppercase text-xs">
             Avantere
           </span>
         </div>
         <button
           onClick={() => setMenuAberto((v) => !v)}
-          className="text-stone-400 hover:text-stone-100 transition-colors p-1"
+          className="text-white/40 hover:text-white/90 transition-colors p-1"
         >
           {menuAberto ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
         </button>
@@ -224,16 +224,16 @@ export function MobileHeader({ perfil, nome }: { perfil: string; nome: string })
       {menuAberto && (
         <>
           <div
-            className="md:hidden fixed inset-0 bg-black/50 z-40"
+            className="md:hidden fixed inset-0 bg-black/60 z-40"
             onClick={() => setMenuAberto(false)}
           />
-          <div className="md:hidden fixed top-0 right-0 h-full w-64 bg-stone-900 z-50 flex flex-col shadow-2xl">
-            <div className="px-5 pt-6 pb-5 border-b border-stone-800 flex items-center justify-between">
+          <div className="md:hidden fixed top-0 right-0 h-full w-64 bg-[#0D0D0D] z-50 flex flex-col shadow-2xl border-l border-[#1e1e1e]">
+            <div className="px-5 pt-6 pb-5 border-b border-[#1e1e1e] flex items-center justify-between">
               <div>
-                <p className="text-sm font-semibold text-stone-100">{nome}</p>
-                <p className="text-xs text-stone-500 mt-0.5 capitalize">{perfil.toLowerCase()}</p>
+                <p className="text-sm font-semibold text-white/90">{nome}</p>
+                <p className="text-xs text-[#444] mt-0.5 capitalize">{perfil.toLowerCase()}</p>
               </div>
-              <button onClick={() => setMenuAberto(false)} className="text-stone-500 hover:text-stone-200">
+              <button onClick={() => setMenuAberto(false)} className="text-white/30 hover:text-white/70">
                 <X className="h-5 w-5" />
               </button>
             </div>
@@ -246,10 +246,10 @@ export function MobileHeader({ perfil, nome }: { perfil: string; nome: string })
                     href={href}
                     onClick={() => setMenuAberto(false)}
                     className={cn(
-                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all",
+                      "flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-all border-l-2",
                       active
-                        ? "bg-stone-800 text-amber-400"
-                        : "text-stone-400 hover:text-stone-200 hover:bg-stone-800/50"
+                        ? "bg-white/5 text-amber-400 dark:text-blue-400 border-amber-500 dark:border-blue-500"
+                        : "text-white/50 hover:text-white hover:bg-white/[0.04] border-transparent"
                     )}
                   >
                     <Icon className="h-5 w-5 shrink-0" />
@@ -258,10 +258,10 @@ export function MobileHeader({ perfil, nome }: { perfil: string; nome: string })
                 )
               })}
             </nav>
-            <div className="px-3 py-4 border-t border-stone-800">
+            <div className="px-3 py-4 border-t border-[#1e1e1e]">
               <button
                 onClick={() => signOut({ callbackUrl: "/login" })}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-stone-400 hover:text-amber-400 hover:bg-stone-800/50 transition-all w-full"
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-sm text-white/40 hover:text-amber-400 dark:hover:text-blue-400 hover:bg-white/[0.04] transition-all w-full"
               >
                 <LogOut className="h-5 w-5 shrink-0" />
                 {t(idioma, "sair")}
@@ -271,7 +271,7 @@ export function MobileHeader({ perfil, nome }: { perfil: string; nome: string })
         </>
       )}
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-stone-900 border-t border-stone-800 z-30 safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-[#0D0D0D] border-t border-[#1e1e1e] z-30 safe-area-bottom">
         <div className="flex items-center justify-around px-2 py-1">
           {navLinks.slice(0, 5).map(({ href, label, icon: Icon }) => {
             const active = pathname === href || pathname.startsWith(href + "/")
@@ -281,7 +281,7 @@ export function MobileHeader({ perfil, nome }: { perfil: string; nome: string })
                 href={href}
                 className={cn(
                   "flex flex-col items-center gap-0.5 px-2 py-2 rounded-lg transition-all min-w-[52px]",
-                  active ? "text-amber-400" : "text-stone-500 hover:text-stone-300"
+                  active ? "text-amber-400 dark:text-blue-400" : "text-white/40 hover:text-white/70"
                 )}
               >
                 <Icon className="h-5 w-5" />

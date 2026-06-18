@@ -35,7 +35,7 @@ export function PopupNovidades() {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
       <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
         {/* Header */}
-        <div className="bg-gradient-to-br from-amber-500 to-orange-600 px-6 pt-6 pb-5">
+        <div className="bg-gradient-to-br from-amber-500 to-orange-600 dark:from-blue-700 dark:to-blue-900 px-6 pt-6 pb-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 bg-white/20 rounded-lg flex items-center justify-center">
@@ -51,7 +51,7 @@ export function PopupNovidades() {
             </button>
           </div>
           <h2 className="text-xl font-bold text-white">Novidades da versão {VERSAO_ATUAL}</h2>
-          <p className="text-amber-100 text-sm mt-1">O Avantere foi atualizado com melhorias importantes.</p>
+          <p className="text-amber-100 dark:text-blue-200 text-sm mt-1">O Avantere foi atualizado com melhorias importantes.</p>
         </div>
 
         {/* Lista */}

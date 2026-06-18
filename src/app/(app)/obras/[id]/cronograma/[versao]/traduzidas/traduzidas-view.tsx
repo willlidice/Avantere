@@ -146,7 +146,7 @@ function TarefaCard({
                 <ol className="space-y-1.5">
                   {tarefa.traducaoJson.subtarefas.map((s: { ordem: number; descricao: string }) => (
                     <li key={s.ordem} className="flex gap-2 text-sm text-gray-700">
-                      <span className="shrink-0 w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold mt-0.5">{s.ordem}</span>
+                      <span className="shrink-0 w-5 h-5 rounded-full bg-amber-100 dark:bg-blue-900/40 text-amber-700 dark:text-blue-300 flex items-center justify-center text-[10px] font-bold mt-0.5">{s.ordem}</span>
                       <span className="leading-snug">{s.descricao}</span>
                     </li>
                   ))}
@@ -158,7 +158,7 @@ function TarefaCard({
                 <p className="text-[10px] uppercase font-semibold tracking-wide text-gray-400 mb-1.5">Materiais / Ferramentas</p>
                 <div className="flex flex-wrap gap-1.5">
                   {tarefa.traducaoJson.materiais.map((m: string, i: number) => (
-                    <span key={i} className="text-xs bg-amber-50 text-amber-800 border border-amber-200 rounded px-2 py-0.5">{m}</span>
+                    <span key={i} className="text-xs bg-amber-50 dark:bg-blue-950/20 text-amber-800 dark:text-blue-300 border border-amber-200 dark:border-blue-800/50 rounded px-2 py-0.5">{m}</span>
                   ))}
                 </div>
               </div>
@@ -406,7 +406,7 @@ export function TraduzidasView({ obraId, nomeObra, versao, tarefasIniciais, pode
             <ArrowLeft className="h-3.5 w-3.5" />
             {t(idioma, "voltarAoCronograma")}
           </Link>
-          <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
             <Languages className="h-6 w-6 text-blue-600" />
             {t(idioma, "tarefasTraduzidas")}
           </h1>

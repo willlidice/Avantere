@@ -64,7 +64,7 @@ export default function SugestoesPage() {
           <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
             <CheckCircle2 className="h-8 w-8 text-green-600" />
           </div>
-          <h2 className="text-xl font-bold text-gray-900">Sugestão enviada!</h2>
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Sugestão enviada!</h2>
           <p className="text-sm text-gray-500 max-w-sm mx-auto">
             Obrigado pelo seu feedback. Nossa equipe irá analisar e entrar em contato se necessário.
           </p>
@@ -83,7 +83,7 @@ export default function SugestoesPage() {
           Feedback
         </p>
         <h1 className="text-2xl font-semibold text-foreground tracking-tight flex items-center gap-2">
-          <Lightbulb className="h-6 w-6 text-amber-500" />
+          <Lightbulb className="h-6 w-6 text-amber-500 dark:text-blue-400" />
           Sugestões e Melhorias
         </h1>
         <p className="text-sm text-muted-foreground mt-1">

@@ -73,6 +73,16 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog"
 import { Textarea } from "@/components/ui/textarea"
 import { t } from "@/lib/i18n"
 import * as XLSX from "xlsx"
@@ -225,6 +235,7 @@ export function CronogramaView({
   const [uploadandoImagem, setUploadandoImagem] = useState(false)
   const [erroGaleria, setErroGaleria] = useState<string | null>(null)
   const [deletandoImagemId, setDeletandoImagemId] = useState<number | null>(null)
+  const [confirmarDeletarImagemId, setConfirmarDeletarImagemId] = useState<number | null>(null)
   const inputImagemRef = useRef<HTMLInputElement>(null)
   const inputCameraRef = useRef<HTMLInputElement>(null)
   const [zoom, setZoom] = useState(75)
@@ -1097,7 +1108,7 @@ export function CronogramaView({
           </Link>
           <span className="text-gray-300 hidden sm:inline select-none">|</span>
           <div className="min-w-0">
-            <h1 className="text-lg font-bold text-gray-900 truncate">
+            <h1 className="text-lg font-bold text-gray-900 dark:text-white truncate">
               {t(idioma, "cronograma")} — {nomeObra}
             </h1>
             {dadosObra && (dadosObra.cnpjObra || dadosObra.cliente || dadosObra.cnpjCliente || dadosObra.cnoObra || dadosObra.valorContrato) && (
@@ -1123,7 +1134,7 @@ export function CronogramaView({
                   </span>
                 )}
                 {dadosObra.valorContrato != null && (
-                  <span className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                  <span className="text-xs text-amber-700 dark:text-blue-300 bg-amber-50 dark:bg-blue-950/20 border border-amber-200 dark:border-blue-800/50 px-2 py-0.5 rounded">
                     Contrato: <strong>{dadosObra.valorContrato.toLocaleString("pt-BR", { style: "currency", currency: "BRL" })}</strong>
                   </span>
                 )}
@@ -1160,11 +1171,11 @@ export function CronogramaView({
               <MoreHorizontal className="h-4 w-4" />
             </Button>
             {mostrarMais && (
-              <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-20 min-w-[220px] py-1">
+              <div className="absolute right-0 top-full mt-1 bg-popover border rounded-lg shadow-lg z-20 min-w-[220px] py-1">
                 <a
                   href="/api/modelo-xlsx"
                   download
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2 text-popover-foreground"
                   onClick={() => setMostrarMais(false)}
                 >
                   <Download className="h-3.5 w-3.5 text-gray-400" />
@@ -1177,7 +1188,7 @@ export function CronogramaView({
                       setModalPromptAberto(true)
                       setMostrarMais(false)
                     }}
-                    className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                    className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2 text-popover-foreground"
                   >
                     <Settings className="h-3.5 w-3.5 text-gray-400" />
                     Configurações de tradução
@@ -1251,14 +1262,14 @@ export function CronogramaView({
               <div className="flex border rounded-md overflow-hidden h-9">
                 <button
                   onClick={() => setViewMode("lista")}
-                  className={`flex items-center gap-1.5 px-3 text-sm transition-colors ${viewMode === "lista" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                  className={`flex items-center gap-1.5 px-3 text-sm transition-colors ${viewMode === "lista" ? "bg-gray-900 text-white dark:bg-primary dark:text-primary-foreground" : "bg-card text-gray-500 dark:text-muted-foreground hover:bg-muted"}`}
                 >
                   <List className="h-3.5 w-3.5" />
                   Lista
                 </button>
                 <button
                   onClick={() => setViewMode("gantt")}
-                  className={`flex items-center gap-1.5 px-3 text-sm transition-colors ${viewMode === "gantt" ? "bg-gray-900 text-white" : "bg-white text-gray-500 hover:bg-gray-50"}`}
+                  className={`flex items-center gap-1.5 px-3 text-sm transition-colors ${viewMode === "gantt" ? "bg-gray-900 text-white dark:bg-primary dark:text-primary-foreground" : "bg-card text-gray-500 dark:text-muted-foreground hover:bg-muted"}`}
                 >
                   <BarChart2 className="h-3.5 w-3.5" />
                   Gantt
@@ -1298,17 +1309,17 @@ export function CronogramaView({
                   <ChevronDown className="h-3.5 w-3.5 ml-1" />
                 </Button>
                 {mostrarImportar && (
-                  <div className="absolute left-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-20 min-w-[220px] py-1">
+                  <div className="absolute left-0 top-full mt-1 bg-popover border rounded-lg shadow-lg z-20 min-w-[220px] py-1">
                     <button
                       onClick={() => { setMostrarImportar(false); inputRef.current?.click() }}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2 text-popover-foreground"
                     >
                       <FileSpreadsheet className="h-3.5 w-3.5 text-green-600" />
                       Excel (.xlsx)
                     </button>
                     <button
                       onClick={() => { setMostrarImportar(false); inputMsRef.current?.click() }}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2 text-gray-700"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2 text-popover-foreground"
                     >
                       <FileDown className="h-3.5 w-3.5 text-blue-600 shrink-0" />
                       <div className="flex flex-col">
@@ -1343,10 +1354,10 @@ export function CronogramaView({
                   <ChevronDown className="h-3.5 w-3.5 ml-1" />
                 </Button>
                 {mostrarExportar && (
-                  <div className="absolute right-0 top-full mt-1 bg-white border rounded-lg shadow-lg z-20 min-w-[200px] py-1">
+                  <div className="absolute right-0 top-full mt-1 bg-popover border rounded-lg shadow-lg z-20 min-w-[200px] py-1">
                     <button
                       onClick={() => exportarXLSX(false)}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2"
                     >
                       <FileSpreadsheet className="h-3.5 w-3.5 text-green-600" />
                       {t(idioma, "exportarXlsxOriginal")}
@@ -1354,16 +1365,16 @@ export function CronogramaView({
                     {tarefasTraduzidas.length > 0 && (
                       <button
                         onClick={() => exportarXLSX(true)}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2"
                       >
                         <FileSpreadsheet className="h-3.5 w-3.5 text-blue-600" />
                         {t(idioma, "exportarXlsxTraduzido")}
                       </button>
                     )}
-                    <div className="h-px bg-gray-100 my-1" />
+                    <div className="h-px bg-border my-1" />
                     <button
                       onClick={() => exportarPDF(false)}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2"
                     >
                       <FileDown className="h-3.5 w-3.5 text-red-500" />
                       {t(idioma, "exportarPdfOriginal")}
@@ -1371,16 +1382,16 @@ export function CronogramaView({
                     {tarefasTraduzidas.length > 0 && (
                       <button
                         onClick={() => exportarPDF(true)}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2"
                       >
                         <FileDown className="h-3.5 w-3.5 text-indigo-500" />
                         {t(idioma, "exportarPdfTraduzido")}
                       </button>
                     )}
-                    <div className="h-px bg-gray-100 my-1" />
+                    <div className="h-px bg-border my-1" />
                     <button
                       onClick={() => exportarGantt(false)}
-                      className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                      className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2"
                     >
                       <CalendarRange className="h-3.5 w-3.5 text-teal-500" />
                       Gantt PDF (original)
@@ -1388,7 +1399,7 @@ export function CronogramaView({
                     {tarefasTraduzidas.length > 0 && (
                       <button
                         onClick={() => exportarGantt(true)}
-                        className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 flex items-center gap-2"
+                        className="w-full text-left px-4 py-2 text-sm hover:bg-accent flex items-center gap-2"
                       >
                         <CalendarRange className="h-3.5 w-3.5 text-teal-700" />
                         Gantt PDF (traduzido)
@@ -1472,7 +1483,7 @@ export function CronogramaView({
                   className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
                     ativo
                       ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                      : "bg-white text-gray-600 border-gray-200 hover:border-primary/40 hover:text-primary"
+                      : "bg-card text-gray-600 dark:text-muted-foreground border-gray-200 hover:border-primary/40 hover:text-primary"
                   }`}
                 >
                   <Icon className="h-3.5 w-3.5" />
@@ -1498,10 +1509,10 @@ export function CronogramaView({
             )}
 
             {selecionadas.size > 0 && (
-              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 text-amber-700 border border-amber-200">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium bg-amber-50 dark:bg-blue-950/20 text-amber-700 dark:text-blue-300 border border-amber-200 dark:border-blue-800/50">
                 <CheckSquare className="h-3.5 w-3.5" />
                 {selecionadas.size} selecionada{selecionadas.size > 1 ? "s" : ""}
-                <button onClick={() => setSelecionadas(new Set())} className="ml-1 hover:text-amber-900 font-bold">
+                <button onClick={() => setSelecionadas(new Set())} className="ml-1 hover:text-amber-900 dark:hover:text-blue-100 font-bold">
                   ×
                 </button>
               </span>
@@ -1541,7 +1552,7 @@ export function CronogramaView({
                     className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs border transition-colors ${
                       filtroLocal === ""
                         ? "bg-gray-800 text-white border-gray-800"
-                        : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                        : "bg-card text-gray-600 dark:text-muted-foreground border-gray-200 hover:border-gray-400"
                     }`}
                   >
                     Todos
@@ -1559,7 +1570,7 @@ export function CronogramaView({
                         className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs border transition-colors ${
                           ativo
                             ? "bg-gray-800 text-white border-gray-800"
-                            : "bg-white text-gray-600 border-gray-200 hover:border-gray-400"
+                            : "bg-card text-gray-600 dark:text-muted-foreground border-gray-200 hover:border-gray-400"
                         }`}
                       >
                         {local}
@@ -1649,7 +1660,7 @@ export function CronogramaView({
                   {/* Controles de zoom */}
                   <div className="flex items-center justify-end gap-2">
                     <span className="text-xs text-gray-400">{t(idioma, "zoom")}:</span>
-                    <div className="flex items-center gap-1 border rounded-md bg-white p-0.5">
+                    <div className="flex items-center gap-1 border rounded-md bg-card p-0.5">
                       <button
                         onClick={() => setZoom((z) => {
                           const idx = ZOOM_STEPS.indexOf(z)
@@ -1686,13 +1697,13 @@ export function CronogramaView({
                   </div>
 
                   <div
-                    className="bg-white border rounded-lg overflow-auto"
+                    className="bg-card border rounded-lg overflow-auto"
                     style={{ maxHeight: "calc(100vh - 300px)" }}
                   >
                     <div style={{ zoom: `${zoom}%` }}>
                       <Table className="min-w-[1140px]">
-                        <TableHeader className="sticky top-0 z-10 bg-gray-50">
-                          <TableRow className="bg-gray-50">
+                        <TableHeader className="sticky top-0 z-10 bg-muted">
+                          <TableRow className="bg-muted">
                             {podeEditar && (
                               <TableHead className="w-10">
                                 <Checkbox
@@ -1750,7 +1761,7 @@ export function CronogramaView({
                           {tarefasOrdenadas.map((tarefa) => (
                             <TableRow
                               key={tarefa.id}
-                              className={selecionadas.has(tarefa.id) ? "bg-blue-50" : undefined}
+                              className={selecionadas.has(tarefa.id) ? "bg-blue-50 dark:bg-blue-950/30" : undefined}
                             >
                               {podeEditar && (
                                 <TableCell>
@@ -1766,7 +1777,7 @@ export function CronogramaView({
                               <TableCell>
                                 <button
                                   onClick={() => { setTarefaDetalhe(tarefa); setDetalheImagemIdx(0) }}
-                                  className="font-medium text-sm text-left hover:text-amber-700 hover:underline transition-colors"
+                                  className="font-medium text-sm text-left hover:text-amber-700 dark:hover:text-blue-400 hover:underline transition-colors"
                                   title="Ver detalhes da tarefa"
                                 >
                                   {tarefa.nome}
@@ -1780,11 +1791,11 @@ export function CronogramaView({
                               </TableCell>
 
                               <TableCell className="text-sm">{tarefa.local}</TableCell>
-                              <TableCell className="text-sm text-gray-500">{tarefa.responsavel || "—"}</TableCell>
+                              <TableCell className="text-sm text-gray-500 dark:text-muted-foreground">{tarefa.responsavel || "—"}</TableCell>
                               <TableCell className="text-right text-sm">
                                 {tarefa.quantidade.toLocaleString("pt-BR")}
                               </TableCell>
-                              <TableCell className="text-sm text-gray-600">{tarefa.unidade}</TableCell>
+                              <TableCell className="text-sm text-gray-600 dark:text-muted-foreground">{tarefa.unidade}</TableCell>
                               <TableCell className="text-sm">{formatarData(tarefa.inicio)}</TableCell>
                               <TableCell className="text-sm">{formatarData(tarefa.fim)}</TableCell>
                               {podeEditar && (
@@ -1891,8 +1902,8 @@ export function CronogramaView({
                   {tarefasOrdenadas.map((tarefa) => (
                     <div
                       key={tarefa.id}
-                      className={`border rounded-lg p-4 bg-white space-y-2 ${
-                        selecionadas.has(tarefa.id) ? "border-blue-400 bg-blue-50" : ""
+                      className={`border rounded-lg p-4 bg-card space-y-2 ${
+                        selecionadas.has(tarefa.id) ? "border-blue-400 bg-blue-50 dark:bg-blue-950/30" : ""
                       }`}
                     >
                       <div className="flex items-start justify-between gap-2">
@@ -1908,7 +1919,7 @@ export function CronogramaView({
                           <div className="flex-1 min-w-0">
                             <button
                               onClick={() => { setTarefaDetalhe(tarefa); setDetalheImagemIdx(0) }}
-                              className="font-medium text-sm text-gray-900 text-left hover:text-amber-700 transition-colors w-full truncate block"
+                              className="font-medium text-sm text-gray-900 dark:text-foreground text-left hover:text-amber-700 dark:hover:text-blue-400 transition-colors w-full truncate block"
                               title="Ver detalhes da tarefa"
                             >
                               {tarefa.nome}
@@ -2034,7 +2045,7 @@ export function CronogramaView({
                 <div className="bg-gray-50 rounded-lg p-4 space-y-3">
                   <div className="flex items-center gap-2">
                     <span className="text-[10px] text-gray-400 uppercase font-semibold">ID</span>
-                    <span className="text-xs font-mono font-medium text-gray-700 bg-white border rounded px-1.5 py-0.5">
+                    <span className="text-xs font-mono font-medium text-gray-700 dark:text-foreground bg-card border rounded px-1.5 py-0.5">
                       {tarefaDetalhe.idExterno}
                     </span>
                   </div>
@@ -2074,7 +2085,7 @@ export function CronogramaView({
                           <p className="text-[10px] text-gray-400 uppercase mb-1">Materiais / Ferramentas</p>
                           <div className="flex flex-wrap gap-1">
                             {tarefaDetalhe.traducaoJson.materiais.map((m: string, i: number) => (
-                              <span key={i} className="text-xs bg-amber-50 text-amber-800 border border-amber-200 rounded px-2 py-0.5">{m}</span>
+                              <span key={i} className="text-xs bg-amber-50 dark:bg-blue-950/20 text-amber-800 dark:text-blue-300 border border-amber-200 dark:border-blue-800/50 rounded px-2 py-0.5">{m}</span>
                             ))}
                           </div>
                         </div>
@@ -2557,8 +2568,8 @@ export function CronogramaView({
               </p>
             </div>
             {promptCustomizado && (
-              <div className="bg-amber-50 border border-amber-200 rounded px-3 py-2">
-                <p className="text-xs text-amber-700 font-medium">Prompt personalizado ativo</p>
+              <div className="bg-amber-50 dark:bg-blue-950/20 border border-amber-200 dark:border-blue-800/50 rounded px-3 py-2">
+                <p className="text-xs text-amber-700 dark:text-blue-300 font-medium">Prompt personalizado ativo</p>
               </div>
             )}
             <div className="flex items-center justify-between gap-2 pt-1">
@@ -2781,7 +2792,7 @@ export function CronogramaView({
                       </span>
                       {podeEditar && imgAtual?.id && (
                         <button
-                          onClick={() => deletarImagem(imgAtual.id!)}
+                          onClick={() => setConfirmarDeletarImagemId(imgAtual.id!)}
                           disabled={deletandoImagemId === imgAtual.id}
                           className="absolute top-3 right-3 flex items-center gap-1.5 bg-red-600 hover:bg-red-700 disabled:opacity-60 text-white text-xs font-medium px-3 py-1.5 rounded-lg shadow-lg transition-colors"
                         >
@@ -2802,7 +2813,7 @@ export function CronogramaView({
                   )}
                 </div>
 
-                <div className="shrink-0 border-t bg-white">
+                <div className="shrink-0 border-t bg-card">
                   {erroGaleria && (
                     <p className="text-xs text-red-600 bg-red-50 border-b border-red-100 px-4 py-2">{erroGaleria}</p>
                   )}
@@ -2825,7 +2836,7 @@ export function CronogramaView({
                         )}
                         {podeEditar && img.id && (
                           <button
-                            onClick={() => deletarImagem(img.id!)}
+                            onClick={() => setConfirmarDeletarImagemId(img.id!)}
                             disabled={deletandoImagemId === img.id}
                             className="absolute -top-1.5 -right-1.5 bg-red-500 hover:bg-red-600 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity shadow"
                           >
@@ -2924,6 +2935,26 @@ export function CronogramaView({
           })()}
         </DialogContent>
       </Dialog>
+
+      <AlertDialog open={confirmarDeletarImagemId !== null} onOpenChange={(open) => { if (!open) setConfirmarDeletarImagemId(null) }}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir imagem?</AlertDialogTitle>
+            <AlertDialogDescription>
+              Esta ação é irreversível. A imagem será removida permanentemente do sistema.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              className="bg-red-600 hover:bg-red-700 text-white"
+              onClick={() => { if (confirmarDeletarImagemId !== null) { deletarImagem(confirmarDeletarImagemId); setConfirmarDeletarImagemId(null) } }}
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

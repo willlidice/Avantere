@@ -101,7 +101,7 @@ function StatCard({
           <Icon className="h-4 w-4 text-white" />
         </div>
       </div>
-      <p className="text-3xl font-bold text-gray-900">{valor.toLocaleString("pt-BR")}</p>
+      <p className="text-3xl font-bold text-gray-900 dark:text-white">{valor.toLocaleString("pt-BR")}</p>
       {sub && <p className="text-xs text-gray-400">{sub}</p>}
     </button>
   ) : (
@@ -112,7 +112,7 @@ function StatCard({
           <Icon className="h-4 w-4 text-white" />
         </div>
       </div>
-      <p className="text-3xl font-bold text-gray-900">{valor.toLocaleString("pt-BR")}</p>
+      <p className="text-3xl font-bold text-gray-900 dark:text-white">{valor.toLocaleString("pt-BR")}</p>
       {sub && <p className="text-xs text-gray-400">{sub}</p>}
     </div>
   )
@@ -138,11 +138,11 @@ function ObraResumo({ obra, idioma }: { obra: ObraComTarefas; idioma: string }) 
         onClick={() => setAberta((v) => !v)}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <div className="p-1.5 bg-amber-100 rounded-lg shrink-0">
-            <Building2 className="h-3.5 w-3.5 text-amber-600" />
+          <div className="p-1.5 bg-amber-100 dark:bg-blue-900/40 rounded-lg shrink-0">
+            <Building2 className="h-3.5 w-3.5 text-amber-600 dark:text-blue-400" />
           </div>
           <div className="text-left min-w-0">
-            <p className="text-sm font-semibold text-gray-900 truncate">{obra.obraNome}</p>
+            <p className="text-sm font-semibold text-gray-900 dark:text-white truncate">{obra.obraNome}</p>
             <p className="text-xs text-gray-400">{total} {t(idioma, "tarefasMenu").toLowerCase()}</p>
           </div>
         </div>
@@ -205,34 +205,34 @@ function BannerBoasVindas() {
   }
 
   return (
-    <div className="relative bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 border border-amber-200 rounded-2xl p-6 overflow-hidden">
+    <div className="relative bg-gradient-to-br from-amber-50 via-orange-50 to-amber-100 dark:from-blue-950/30 dark:via-blue-900/20 dark:to-blue-950/30 border border-amber-200 dark:border-blue-800/50 rounded-2xl p-6 overflow-hidden">
       <button
         onClick={fechar}
-        className="absolute top-3 right-3 text-amber-400 hover:text-amber-700 transition-colors"
+        className="absolute top-3 right-3 text-amber-400 dark:text-blue-400 hover:text-amber-700 dark:hover:text-blue-300 transition-colors"
         title="Fechar"
       >
         <X className="h-4 w-4" />
       </button>
       <div className="flex items-center gap-3 mb-3">
-        <div className="p-2.5 bg-amber-500 rounded-xl">
+        <div className="p-2.5 bg-amber-500 dark:bg-blue-600 rounded-xl">
           <HardHat className="h-6 w-6 text-white" />
         </div>
         <div>
-          <h2 className="text-lg font-bold text-amber-900">Bem-vindo ao Avantere</h2>
-          <p className="text-xs text-amber-700">Gestão inteligente de cronogramas de obra</p>
+          <h2 className="text-lg font-bold text-amber-900 dark:text-blue-100">Bem-vindo ao Avantere</h2>
+          <p className="text-xs text-amber-700 dark:text-blue-300">Gestão inteligente de cronogramas de obra</p>
         </div>
       </div>
-      <p className="text-sm text-amber-800 mb-4 leading-relaxed">
+      <p className="text-sm text-amber-800 dark:text-blue-200 mb-4 leading-relaxed">
         O Avantere conecta gestores e equipes de produção em obras civis. Importe cronogramas Excel,
         deixe a IA traduzir as tarefas técnicas em instruções simples, e acompanhe o progresso em tempo real.
       </p>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {FEATURES.map(({ icon: Icon, titulo, desc }) => (
           <div key={titulo} className="flex gap-2.5 bg-white/60 rounded-lg p-3">
-            <Icon className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+            <Icon className="h-4 w-4 text-amber-600 dark:text-blue-400 shrink-0 mt-0.5" />
             <div>
-              <p className="text-xs font-semibold text-amber-900">{titulo}</p>
-              <p className="text-[11px] text-amber-700 leading-snug mt-0.5">{desc}</p>
+              <p className="text-xs font-semibold text-amber-900 dark:text-blue-100">{titulo}</p>
+              <p className="text-[11px] text-amber-700 dark:text-blue-300 leading-snug mt-0.5">{desc}</p>
             </div>
           </div>
         ))}
@@ -359,8 +359,8 @@ export default function DashboardPage() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-400 mb-1">
           {t(idioma, "dashboard")}
         </p>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-          <HardHat className="h-6 w-6 text-amber-600" />
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+          <HardHat className="h-6 w-6 text-amber-600 dark:text-blue-400" />
           {nome ? `${nome}` : t(idioma, "dashboard")}
         </h1>
         {total > 0 && (
@@ -443,7 +443,7 @@ export default function DashboardPage() {
         {/* Obras */}
         <div className="bg-white border rounded-xl p-5 space-y-4">
           <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-            <Building2 className="h-4 w-4 text-amber-600" />
+            <Building2 className="h-4 w-4 text-amber-600 dark:text-blue-400" />
             {t(idioma, "minhasObras")}
           </h2>
           {obras.length === 0 ? (

@@ -70,10 +70,10 @@ function BarraProgresso({ valor, total, cor }: { valor: number; total: number; c
   const pct = total > 0 ? Math.round((valor / total) * 100) : 0
   return (
     <div className="flex items-center gap-2">
-      <div className="flex-1 bg-gray-100 rounded-full h-2 overflow-hidden">
+      <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 overflow-hidden">
         <div className={`h-full rounded-full transition-all duration-500 ${cor}`} style={{ width: `${pct}%` }} />
       </div>
-      <span className="text-xs font-medium text-gray-600 w-9 text-right">{pct}%</span>
+      <span className="text-xs font-semibold text-gray-600 dark:text-gray-300 w-9 text-right">{pct}%</span>
     </div>
   )
 }
@@ -84,23 +84,28 @@ function StatCard({
   valor,
   sub,
   cor,
+  acento,
 }: {
   icon: React.ElementType
   label: string
   valor: number
   sub?: string
   cor: string
+  acento: string
 }) {
   return (
-    <div className="bg-white border rounded-xl p-5 space-y-3">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-3 relative overflow-hidden">
+      <div className={`absolute top-0 left-0 right-0 h-1 ${acento}`} />
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-500">{label}</span>
+        <span className="text-sm font-semibold text-gray-600 dark:text-gray-300">{label}</span>
         <div className={`p-2 rounded-lg ${cor}`}>
           <Icon className="h-4 w-4 text-white" />
         </div>
       </div>
-      <p className="text-3xl font-bold text-gray-900">{valor.toLocaleString("pt-BR")}</p>
-      {sub && <p className="text-xs text-gray-400">{sub}</p>}
+      <p className="text-4xl font-bold text-gray-900 dark:text-white tracking-tight">
+        {valor.toLocaleString("pt-BR")}
+      </p>
+      {sub && <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{sub}</p>}
     </div>
   )
 }
@@ -124,9 +129,9 @@ function CreditosIA({ perfil }: { perfil: string }) {
   if (perfil !== "SUPER_ADMIN") return null
 
   return (
-    <div className="bg-white border rounded-xl p-5 space-y-4">
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+        <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
           <Sparkles className="h-4 w-4 text-indigo-500" />
           IA — Uso de créditos Claude
         </h2>
@@ -134,21 +139,21 @@ function CreditosIA({ perfil }: { perfil: string }) {
           href="https://console.anthropic.com/settings/billing"
           target="_blank"
           rel="noreferrer"
-          className="flex items-center gap-1 text-xs text-indigo-600 hover:underline"
+          className="flex items-center gap-1 text-xs text-indigo-500 dark:text-indigo-400 hover:underline font-medium"
         >
           Ver painel Anthropic
           <ExternalLink className="h-3 w-3" />
         </a>
       </div>
 
-      <div className="bg-amber-50 border border-amber-200 rounded-lg px-3 py-2.5">
-        <p className="text-xs text-amber-700">
+      <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-300 dark:border-amber-700/60 rounded-lg px-3 py-2.5">
+        <p className="text-xs font-medium text-amber-800 dark:text-amber-300">
           Saldo e gasto não estão disponíveis via API da Anthropic.{" "}
           <a
             href="https://console.anthropic.com/settings/billing"
             target="_blank"
             rel="noreferrer"
-            className="font-semibold underline hover:text-amber-900"
+            className="font-bold underline hover:text-amber-900 dark:hover:text-amber-200"
           >
             Acesse o painel para conferir.
           </a>
@@ -156,27 +161,27 @@ function CreditosIA({ perfil }: { perfil: string }) {
       </div>
 
       {carregando ? (
-        <div className="flex items-center gap-2 text-gray-400 text-xs py-1">
+        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs py-1">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Carregando uso...
         </div>
       ) : dados ? (
         <div className="space-y-2.5">
-          <p className="text-[10px] text-gray-400 uppercase font-semibold tracking-wide">
+          <p className="text-[10px] text-gray-500 dark:text-gray-400 uppercase font-bold tracking-wide">
             Uso registrado no sistema
           </p>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Tarefas traduzidas via IA</span>
-            <span className="font-semibold text-indigo-700">{dados.totalTraduzidas.toLocaleString("pt-BR")}</span>
+            <span className="text-gray-700 dark:text-gray-300 font-medium">Tarefas traduzidas via IA</span>
+            <span className="font-bold text-indigo-600 dark:text-indigo-400">{dados.totalTraduzidas.toLocaleString("pt-BR")}</span>
           </div>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-600">Total de tarefas cadastradas</span>
-            <span className="font-semibold text-gray-700">{dados.totalTarefas.toLocaleString("pt-BR")}</span>
+            <span className="text-gray-700 dark:text-gray-300 font-medium">Total de tarefas cadastradas</span>
+            <span className="font-bold text-gray-800 dark:text-gray-200">{dados.totalTarefas.toLocaleString("pt-BR")}</span>
           </div>
           {dados.totalTarefas > 0 && (
-            <div className="flex flex-1 rounded-full overflow-hidden bg-gray-100 h-1.5">
+            <div className="flex flex-1 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 h-2">
               <div
-                className="bg-indigo-400 h-full transition-all duration-500"
+                className="bg-indigo-500 h-full transition-all duration-500"
                 style={{ width: `${Math.round((dados.totalTraduzidas / dados.totalTarefas) * 100)}%` }}
               />
             </div>
@@ -203,14 +208,14 @@ function UsoDisco({ perfil }: { perfil: string }) {
   if (perfil !== "SUPER_ADMIN") return null
 
   return (
-    <div className="bg-white border rounded-xl p-5 space-y-4">
-      <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
-        <HardDrive className="h-4 w-4 text-slate-500" />
+    <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
+      <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
+        <HardDrive className="h-4 w-4 text-slate-500 dark:text-slate-400" />
         Infraestrutura — Uso de disco
       </h2>
 
       {carregando ? (
-        <div className="flex items-center gap-2 text-gray-400 text-xs py-1">
+        <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400 text-xs py-1">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
           Carregando uso de disco...
         </div>
@@ -218,12 +223,12 @@ function UsoDisco({ perfil }: { perfil: string }) {
         <div className="space-y-4">
           <div className="space-y-1.5">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600 flex items-center gap-1.5">
-                <HardDrive className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-gray-700 dark:text-gray-300 font-medium flex items-center gap-1.5">
+                <HardDrive className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
                 VPS (servidor)
               </span>
               {dados.vps && (
-                <span className="font-semibold text-gray-700">
+                <span className="font-bold text-gray-800 dark:text-gray-200">
                   {formatarBytes(dados.vps.usadoBytes)} de {formatarBytes(dados.vps.totalBytes)}
                 </span>
               )}
@@ -235,36 +240,36 @@ function UsoDisco({ perfil }: { perfil: string }) {
                 cor={dados.vps.pct > 85 ? "bg-red-500" : dados.vps.pct > 65 ? "bg-amber-500" : "bg-emerald-500"}
               />
             ) : (
-              <p className="text-xs text-gray-400">{dados.erroVps ?? "Sem dados"}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{dados.erroVps ?? "Sem dados"}</p>
             )}
-            <p className="text-[10px] text-gray-400">
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">
               Disco total do servidor (compartilhado entre todos os apps hospedados nele)
             </p>
           </div>
 
-          <div className="space-y-1.5 pt-2 border-t">
+          <div className="space-y-1.5 pt-2 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600 flex items-center gap-1.5">
-                <Database className="h-3.5 w-3.5 text-gray-400" />
+              <span className="text-gray-700 dark:text-gray-300 font-medium flex items-center gap-1.5">
+                <Database className="h-3.5 w-3.5 text-gray-500 dark:text-gray-400" />
                 Cloudflare R2 (arquivos)
               </span>
               {dados.r2 && (
-                <span className="font-semibold text-gray-700">{formatarBytes(dados.r2.usadoBytes)}</span>
+                <span className="font-bold text-gray-800 dark:text-gray-200">{formatarBytes(dados.r2.usadoBytes)}</span>
               )}
             </div>
             {dados.r2 ? (
-              <p className="text-xs text-gray-500">
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {dados.r2.totalObjetos.toLocaleString("pt-BR")} arquivo{dados.r2.totalObjetos === 1 ? "" : "s"} armazenado
                 {dados.r2.totalObjetos === 1 ? "" : "s"}
               </p>
             ) : (
-              <p className="text-xs text-gray-400">{dados.erroR2 ?? "Sem dados"}</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400">{dados.erroR2 ?? "Sem dados"}</p>
             )}
-            <p className="text-[10px] text-gray-400">R2 não possui limite de quota fixo (cobrança por uso)</p>
+            <p className="text-[10px] text-gray-500 dark:text-gray-400">R2 não possui limite de quota fixo (cobrança por uso)</p>
           </div>
         </div>
       ) : (
-        <p className="text-xs text-gray-400">Não foi possível carregar os dados de uso de disco</p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">Não foi possível carregar os dados de uso de disco</p>
       )}
     </div>
   )
@@ -300,16 +305,16 @@ export function VisaoGeralClient({ perfil }: { perfil: string }) {
     return (
       <div className="flex items-center justify-center h-40 gap-2 text-red-500">
         <AlertCircle className="h-5 w-5" />
-        <span className="text-sm">{erro}</span>
+        <span className="text-sm font-medium">{erro}</span>
       </div>
     )
   }
 
   if (!dados) {
     return (
-      <div className="flex items-center justify-center h-40 text-gray-400 gap-2">
+      <div className="flex items-center justify-center h-40 text-gray-500 dark:text-gray-400 gap-2">
         <Loader2 className="h-5 w-5 animate-spin" />
-        <span className="text-sm">Carregando...</span>
+        <span className="text-sm font-medium">Carregando...</span>
       </div>
     )
   }
@@ -321,91 +326,120 @@ export function VisaoGeralClient({ perfil }: { perfil: string }) {
     <div className="max-w-6xl mx-auto space-y-6">
       {/* Header */}
       <div>
-        <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-400 mb-1">{t(idioma, "dashboard")}</p>
-        <h1 className="text-2xl font-bold text-gray-900">{t(idioma, "visaoGeralTitulo")}</h1>
+        <p className="text-[11px] font-bold uppercase tracking-[0.1em] text-gray-500 dark:text-gray-400 mb-1">
+          {t(idioma, "dashboard")}
+        </p>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t(idioma, "visaoGeralTitulo")}</h1>
       </div>
 
       {/* Stats cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatCard icon={Building2} label={t(idioma, "totalObras")} valor={totalObras} sub={`${totalObrasAtivas} ${t(idioma, "obrasAtivas").toLowerCase()}`} cor="bg-amber-500" />
-        <StatCard icon={TrendingUp} label={t(idioma, "totalTarefas")} valor={totalTarefas} sub="" cor="bg-blue-500" />
-        <StatCard icon={Languages} label={t(idioma, "totalTraduzidas")} valor={totalTraduzidas} sub={`${pctTraduzidas}%`} cor="bg-indigo-500" />
-        <StatCard icon={Clock} label={t(idioma, "emAndamento")} valor={porStatus.emAndamento} sub={`${porStatus.futuras} ${t(idioma, "futuras").toLowerCase()} · ${porStatus.concluidas} ${t(idioma, "concluidas").toLowerCase()}`} cor="bg-green-500" />
+        <StatCard
+          icon={Building2}
+          label={t(idioma, "totalObras")}
+          valor={totalObras}
+          sub={`${totalObrasAtivas} ${t(idioma, "obrasAtivas").toLowerCase()}`}
+          cor="bg-amber-500"
+          acento="bg-amber-500"
+        />
+        <StatCard
+          icon={TrendingUp}
+          label={t(idioma, "totalTarefas")}
+          valor={totalTarefas}
+          cor="bg-blue-500"
+          acento="bg-blue-500"
+        />
+        <StatCard
+          icon={Languages}
+          label={t(idioma, "totalTraduzidas")}
+          valor={totalTraduzidas}
+          sub={`${pctTraduzidas}% do total`}
+          cor="bg-indigo-500"
+          acento="bg-indigo-500"
+        />
+        <StatCard
+          icon={Clock}
+          label={t(idioma, "emAndamento")}
+          valor={porStatus.emAndamento}
+          sub={`${porStatus.futuras} ${t(idioma, "futuras").toLowerCase()} · ${porStatus.concluidas} ${t(idioma, "concluidas").toLowerCase()}`}
+          cor="bg-green-500"
+          acento="bg-green-500"
+        />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Status das tarefas */}
-        <div className="bg-white border rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">{t(idioma, "emAndamento")}</h2>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100">{t(idioma, "emAndamento")}</h2>
           {totalTarefas === 0 ? (
-            <p className="text-xs text-gray-400">{t(idioma, "semObras")}</p>
+            <p className="text-xs font-medium text-gray-500 dark:text-gray-400">{t(idioma, "semObras")}</p>
           ) : (
             <div className="space-y-3">
               <div className="space-y-1">
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span className="flex items-center gap-1.5">
+                <div className="flex justify-between text-xs text-gray-700 dark:text-gray-300">
+                  <span className="flex items-center gap-1.5 font-medium">
                     <span className="w-2 h-2 rounded-full bg-green-500 inline-block" />
                     {t(idioma, "emAndamento")}
                   </span>
-                  <span className="font-medium">{porStatus.emAndamento}</span>
+                  <span className="font-bold">{porStatus.emAndamento}</span>
                 </div>
                 <BarraProgresso valor={porStatus.emAndamento} total={totalTarefas} cor="bg-green-500" />
               </div>
               <div className="space-y-1">
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-blue-400 inline-block" />
+                <div className="flex justify-between text-xs text-gray-700 dark:text-gray-300">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-blue-500 inline-block" />
                     {t(idioma, "futuras")}
                   </span>
-                  <span className="font-medium">{porStatus.futuras}</span>
+                  <span className="font-bold">{porStatus.futuras}</span>
                 </div>
-                <BarraProgresso valor={porStatus.futuras} total={totalTarefas} cor="bg-blue-400" />
+                <BarraProgresso valor={porStatus.futuras} total={totalTarefas} cor="bg-blue-500" />
               </div>
               <div className="space-y-1">
-                <div className="flex justify-between text-xs text-gray-600">
-                  <span className="flex items-center gap-1.5">
-                    <span className="w-2 h-2 rounded-full bg-gray-300 inline-block" />
+                <div className="flex justify-between text-xs text-gray-700 dark:text-gray-300">
+                  <span className="flex items-center gap-1.5 font-medium">
+                    <span className="w-2 h-2 rounded-full bg-gray-400 inline-block" />
                     {t(idioma, "concluidas")}
                   </span>
-                  <span className="font-medium">{porStatus.concluidas}</span>
+                  <span className="font-bold">{porStatus.concluidas}</span>
                 </div>
-                <BarraProgresso valor={porStatus.concluidas} total={totalTarefas} cor="bg-gray-300" />
+                <BarraProgresso valor={porStatus.concluidas} total={totalTarefas} cor="bg-gray-400 dark:bg-gray-500" />
               </div>
             </div>
           )}
         </div>
 
         {/* Tradução global */}
-        <div className="bg-white border rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">{t(idioma, "progressoTraducao")}</h2>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100">{t(idioma, "progressoTraducao")}</h2>
           <div className="flex flex-col items-center justify-center py-4">
-            <div className="relative w-24 h-24">
+            <div className="relative w-28 h-28">
               <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="40" fill="none" stroke="#f3f4f6" strokeWidth="12" />
+                <circle cx="50" cy="50" r="40" fill="none" stroke="currentColor" strokeWidth="10" className="text-gray-200 dark:text-gray-700" />
                 <circle
                   cx="50"
                   cy="50"
                   r="40"
                   fill="none"
                   stroke="#6366f1"
-                  strokeWidth="12"
+                  strokeWidth="10"
                   strokeDasharray={`${pctTraduzidas * 2.513} 251.3`}
                   strokeLinecap="round"
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-2xl font-bold text-gray-900">{pctTraduzidas}%</span>
+                <span className="text-2xl font-bold text-gray-900 dark:text-white">{pctTraduzidas}%</span>
               </div>
             </div>
-            <p className="text-sm text-gray-500 mt-3">
+            <p className="text-sm font-medium text-gray-600 dark:text-gray-400 mt-3">
               {totalTraduzidas} de {totalTarefas} tarefas
             </p>
           </div>
         </div>
 
         {/* Vencendo em 7 dias */}
-        <div className="bg-white border rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100 flex items-center gap-2">
             <CalendarClock className="h-4 w-4 text-orange-500" />
             {t(idioma, "vencendoEm7Dias")}
             {vencendoEm7Dias.length > 0 && (
@@ -413,21 +447,21 @@ export function VisaoGeralClient({ perfil }: { perfil: string }) {
             )}
           </h2>
           {vencendoEm7Dias.length === 0 ? (
-            <div className="flex flex-col items-center py-4 text-gray-400">
+            <div className="flex flex-col items-center py-4 text-gray-400 dark:text-gray-500">
               <CheckCircle2 className="h-8 w-8 mb-2 opacity-40" />
-              <p className="text-xs">{t(idioma, "nenhumaTarefaVencendo")}</p>
+              <p className="text-xs font-medium">{t(idioma, "nenhumaTarefaVencendo")}</p>
             </div>
           ) : (
             <div className="space-y-2 overflow-y-auto max-h-52">
               {vencendoEm7Dias.map((item, i) => (
-                <div key={i} className="flex items-start gap-2 py-1.5 border-b border-gray-50 last:border-0">
+                <div key={i} className="flex items-start gap-2 py-1.5 border-b border-gray-100 dark:border-gray-700 last:border-0">
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs font-medium text-gray-800 truncate">{item.tarefaNome}</p>
-                    <p className="text-[11px] text-gray-400 truncate">{item.obraNome}</p>
+                    <p className="text-xs font-semibold text-gray-800 dark:text-gray-200 truncate">{item.tarefaNome}</p>
+                    <p className="text-[11px] font-medium text-gray-500 dark:text-gray-400 truncate">{item.obraNome}</p>
                   </div>
                   <div className="shrink-0 text-right">
-                    <p className="text-xs font-medium text-orange-600">{diasRestantes(item.fim)}</p>
-                    <p className="text-[10px] text-gray-400">{formatarData(item.fim)}</p>
+                    <p className="text-xs font-bold text-orange-600 dark:text-orange-400">{diasRestantes(item.fim)}</p>
+                    <p className="text-[10px] font-medium text-gray-500 dark:text-gray-400">{formatarData(item.fim)}</p>
                   </div>
                 </div>
               ))}
@@ -438,8 +472,8 @@ export function VisaoGeralClient({ perfil }: { perfil: string }) {
 
       {/* Obras */}
       {obraStats.length > 0 && (
-        <div className="bg-white border rounded-xl p-5 space-y-4">
-          <h2 className="text-sm font-semibold text-gray-700">{t(idioma, "totalObras")}</h2>
+        <div className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4">
+          <h2 className="text-sm font-bold text-gray-800 dark:text-gray-100">{t(idioma, "totalObras")}</h2>
           <div className="space-y-3">
             {obraStats.map((obra) => {
               const pctTrad = obra.totalTarefas > 0
@@ -450,7 +484,7 @@ export function VisaoGeralClient({ perfil }: { perfil: string }) {
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/obras/${obra.obraId}/cronograma`}
-                      className="text-sm font-medium text-gray-800 hover:text-amber-600 hover:underline flex-1 truncate"
+                      className="text-sm font-semibold text-gray-800 dark:text-gray-200 hover:text-amber-600 dark:hover:text-blue-400 hover:underline flex-1 truncate"
                     >
                       {obra.obraNome}
                     </Link>
@@ -458,17 +492,17 @@ export function VisaoGeralClient({ perfil }: { perfil: string }) {
                       {!obra.ativa && (
                         <Badge variant="outline" className="text-[10px] px-1.5 py-0">inativa</Badge>
                       )}
-                      <span className="text-xs text-gray-400">
+                      <span className="text-xs font-medium text-gray-500 dark:text-gray-400">
                         {obra.totalTarefas} tarefa{obra.totalTarefas !== 1 ? "s" : ""}
                       </span>
-                      <span className="text-xs text-indigo-600 font-medium">{pctTrad}% trad.</span>
-                      <span className="text-[10px] text-gray-300">v{obra.versoes}</span>
+                      <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{pctTrad}% trad.</span>
+                      <span className="text-[10px] font-medium text-gray-400 dark:text-gray-500">v{obra.versoes}</span>
                     </div>
                   </div>
                   {obra.totalTarefas > 0 && (
-                    <div className="flex flex-1 rounded-full overflow-hidden bg-gray-100 h-1.5">
+                    <div className="flex flex-1 rounded-full overflow-hidden bg-gray-200 dark:bg-gray-700 h-2">
                       <div
-                        className="bg-indigo-400 h-full transition-all duration-500"
+                        className="bg-indigo-500 h-full transition-all duration-500"
                         style={{ width: `${pctTrad}%` }}
                       />
                     </div>
@@ -481,9 +515,9 @@ export function VisaoGeralClient({ perfil }: { perfil: string }) {
       )}
 
       {totalObras === 0 && (
-        <div className="text-center py-16 text-gray-400">
+        <div className="text-center py-16 text-gray-400 dark:text-gray-500">
           <Building2 className="h-12 w-12 mx-auto mb-3 opacity-30" />
-          <p className="text-sm">{t(idioma, "semObras")}</p>
+          <p className="text-sm font-medium">{t(idioma, "semObras")}</p>
         </div>
       )}
 

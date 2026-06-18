@@ -56,7 +56,7 @@ interface Job {
 function ScoreBadge({ score }: { score: number }) {
   const pct = Math.round(score * 100)
   if (pct >= 80) return <Badge className="text-xs bg-green-100 text-green-700 border-green-200">{pct}%</Badge>
-  if (pct >= 60) return <Badge className="text-xs bg-amber-100 text-amber-700 border-amber-200">{pct}%</Badge>
+  if (pct >= 60) return <Badge className="text-xs bg-amber-100 dark:bg-blue-900/40 text-amber-700 dark:text-blue-300 border-amber-200 dark:border-blue-700">{pct}%</Badge>
   return <Badge className="text-xs bg-red-100 text-red-700 border-red-200">{pct}%</Badge>
 }
 
@@ -219,12 +219,12 @@ export default function LevantamentoDetalhe() {
             </Button>
           </Link>
           <div className="flex items-center gap-2 flex-wrap">
-            <PackageSearch className="w-5 h-5 text-amber-600" />
+            <PackageSearch className="w-5 h-5 text-amber-600 dark:text-blue-400" />
             <h1 className="text-lg font-semibold text-stone-900">Levantamento #{job.id}</h1>
             {aguardandoRespostas ? (
               <Badge className="bg-orange-100 text-orange-700 border-orange-200">Aguardando respostas</Badge>
             ) : aprovado ? (
-              <Badge className="bg-amber-100 text-amber-700 border-amber-200">Aprovado</Badge>
+              <Badge className="bg-amber-100 dark:bg-blue-900/40 text-amber-700 dark:text-blue-300 border-amber-200 dark:border-blue-700">Aprovado</Badge>
             ) : (
               <Badge className="bg-green-100 text-green-700 border-green-200">Concluído</Badge>
             )}
@@ -237,7 +237,7 @@ export default function LevantamentoDetalhe() {
         </div>
         <div className="flex gap-2">
           {!aguardandoRespostas && (
-            <Button variant="outline" size="sm" onClick={exportar}>
+            <Button variant="outline" size="sm" onClick={exportar} className="border-slate-500 bg-slate-700 text-slate-100 hover:bg-slate-600 hover:text-white dark:border-slate-500 dark:bg-slate-700">
               <Download className="w-4 h-4 mr-1" /> Exportar XLSX
             </Button>
           )}
@@ -247,6 +247,7 @@ export default function LevantamentoDetalhe() {
               disabled={!podeAprovar || aprovando}
               onClick={aprovar}
               title={!podeAprovar ? "Revise todos os itens com confiança baixa antes de aprovar" : ""}
+              className="bg-blue-600 hover:bg-blue-700 text-white disabled:bg-slate-700 disabled:text-slate-400"
             >
               {aprovando ? (
                 <Loader2 className="w-4 h-4 mr-1 animate-spin" />
@@ -325,7 +326,7 @@ export default function LevantamentoDetalhe() {
 
       {/* Info de aprovação */}
       {aprovado && job.aprovadoEm && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex gap-2">
+        <div className="rounded-md border border-amber-200 dark:border-blue-800/50 bg-amber-50 dark:bg-blue-950/20 p-3 text-sm text-amber-800 dark:text-blue-200 flex gap-2">
           <CheckCircle2 className="w-4 h-4 mt-0.5 shrink-0" />
           Aprovado por <strong>{job.aprovadorNome ?? "–"}</strong> em{" "}
           {new Date(job.aprovadoEm).toLocaleString("pt-BR")}. Edição bloqueada.
@@ -334,7 +335,7 @@ export default function LevantamentoDetalhe() {
 
       {/* Alerta itens baixa confiança */}
       {itensAlerta.length > 0 && (
-        <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex gap-2">
+        <div className="rounded-md border border-amber-200 dark:border-blue-800/50 bg-amber-50 dark:bg-blue-950/20 p-3 text-sm text-amber-800 dark:text-blue-200 flex gap-2">
           <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
           <span>
             <strong>{itensAlerta.length} item{itensAlerta.length !== 1 ? "ns" : ""}</strong> com confiança abaixo de 70% precisam de revisão antes da aprovação.
@@ -378,10 +379,10 @@ export default function LevantamentoDetalhe() {
                       const temAlerta = item.scoreConfianca < 0.7 && !item.revisado
                       const temEdicao = !!edicoes[item.id]
                       return (
-                        <tr key={item.id} className={cn(temAlerta && "bg-amber-50")}>
+                        <tr key={item.id} className={cn(temAlerta && "bg-amber-50 dark:bg-blue-950/20")}>
                           <td className="px-3 py-2">
                             <div className="flex items-start gap-1.5">
-                              {temAlerta && <AlertTriangle className="w-3 h-3 text-amber-500 shrink-0 mt-1.5" />}
+                              {temAlerta && <AlertTriangle className="w-3 h-3 text-amber-500 dark:text-blue-400 shrink-0 mt-1.5" />}
                               <div className="flex-1 min-w-0">
                                 {aprovado ? (
                                   <span>{atual.descricao}</span>

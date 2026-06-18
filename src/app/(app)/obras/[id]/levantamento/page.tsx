@@ -42,7 +42,7 @@ const STATUS_CONFIG: Record<string, { label: string; icon: React.ElementType; co
   AGUARDANDO_RESPOSTAS: { label: "Responder perguntas", icon: MessageSquare, cor: "bg-orange-100 text-orange-700 border-orange-200" },
   CONCLUIDO: { label: "Concluído", icon: CheckCircle2, cor: "bg-green-100 text-green-700 border-green-200" },
   ERRO: { label: "Erro", icon: XCircle, cor: "bg-red-100 text-red-700 border-red-200" },
-  APROVADO: { label: "Aprovado", icon: CheckCircle2, cor: "bg-amber-100 text-amber-700 border-amber-200" },
+  APROVADO: { label: "Aprovado", icon: CheckCircle2, cor: "bg-amber-100 dark:bg-blue-900/40 text-amber-700 dark:text-blue-300 border-amber-200 dark:border-blue-700" },
 }
 
 export default function LevantamentoPage() {
@@ -119,7 +119,7 @@ export default function LevantamentoPage() {
             </Button>
           </Link>
           <div className="flex items-center gap-2">
-            <PackageSearch className="w-5 h-5 text-amber-600" />
+            <PackageSearch className="w-5 h-5 text-amber-600 dark:text-blue-400" />
             <h1 className="text-lg font-semibold text-stone-900">Levantamento de Materiais</h1>
           </div>
         </div>
@@ -130,8 +130,8 @@ export default function LevantamentoPage() {
       </div>
 
       {/* Aviso sobre limitações */}
-      <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 flex gap-2">
-        <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0" />
+      <div className="rounded-md border border-amber-300 dark:border-amber-600/60 bg-amber-50 dark:bg-amber-900/25 p-3 text-sm font-medium text-amber-900 dark:text-amber-200 flex gap-2">
+        <AlertTriangle className="w-4 h-4 mt-0.5 shrink-0 text-amber-600 dark:text-amber-400" />
         <span>
           Aceita <strong>XLSX</strong> (memorial de quantitativos) e <strong>PDF de 1 página</strong> (especificações técnicas).
           PDFs escaneados (imagem) e arquivos DXF/DWG não são suportados nesta versão.
@@ -211,38 +211,38 @@ export default function LevantamentoPage() {
       {/* Aviso beta — exibido sempre ao entrar */}
       {avisoVisivel && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+          <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="bg-gradient-to-br from-orange-500 to-red-600 px-6 pt-6 pb-5">
               <div className="flex items-center gap-3">
                 <div className="w-9 h-9 bg-white/20 rounded-xl flex items-center justify-center">
                   <AlertTriangle className="h-5 w-5 text-white" />
                 </div>
                 <div>
-                  <p className="text-white/80 text-xs uppercase tracking-wide font-medium">Levantamento de Materiais</p>
+                  <p className="text-white/80 text-xs uppercase tracking-wide font-semibold">Levantamento de Materiais</p>
                   <h2 className="text-white font-bold text-lg leading-tight">Ferramenta em fase de teste</h2>
                 </div>
               </div>
             </div>
             <div className="px-6 py-5 space-y-3">
-              <p className="text-sm text-gray-700 leading-relaxed">
+              <p className="text-sm font-medium text-gray-700 dark:text-gray-300 leading-relaxed">
                 Esta ferramenta utiliza inteligência artificial para extrair quantitativos de materiais a partir de documentos PDF e planilhas XLSX.
               </p>
-              <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-2.5">
+              <div className="bg-amber-50 dark:bg-amber-900/25 border border-amber-300 dark:border-amber-600/60 rounded-lg p-4 space-y-2.5">
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800 font-medium leading-snug">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-sm font-semibold text-amber-900 dark:text-amber-200 leading-snug">
                     Todas as informações geradas devem ser revisadas por profissional habilitado antes de qualquer uso.
                   </p>
                 </div>
                 <div className="flex items-start gap-2">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
-                  <p className="text-sm text-amber-800 leading-snug">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+                  <p className="text-sm font-medium text-amber-800 dark:text-amber-300 leading-snug">
                     A Avantere não se responsabiliza por levantamentos incorretos, omissões ou divergências nos quantitativos extraídos.
                   </p>
                 </div>
               </div>
             </div>
-            <div className="px-6 pb-5 pt-2 border-t">
+            <div className="px-6 pb-5 pt-2 border-t dark:border-gray-700">
               <Button onClick={() => setAvisoVisivel(false)} className="w-full">
                 Entendi, continuar
               </Button>
@@ -264,7 +264,7 @@ export default function LevantamentoPage() {
 
             {/* Área de drop */}
             <div
-              className="border-2 border-dashed border-stone-300 rounded-lg p-8 text-center cursor-pointer hover:border-amber-400 hover:bg-amber-50 transition-colors"
+              className="border-2 border-dashed border-stone-300 rounded-lg p-8 text-center cursor-pointer hover:border-amber-400 dark:hover:border-blue-500 hover:bg-amber-50 dark:hover:bg-blue-950/20 transition-colors"
               onClick={() => inputRef.current?.click()}
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); handleArquivos(e.dataTransfer.files) }}

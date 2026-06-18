@@ -11,7 +11,7 @@ function Secao({ icon: Icon, titulo, children }: { icon: React.ElementType; titu
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-base">
-          <Icon className="h-5 w-5 text-amber-500" />
+          <Icon className="h-5 w-5 text-amber-500 dark:text-blue-400" />
           {titulo}
         </CardTitle>
       </CardHeader>
@@ -43,7 +43,7 @@ export default function DocumentacaoPage() {
             <ShieldCheck className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Documentação e Privacidade</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Documentação e Privacidade</h1>
             <p className="text-sm text-gray-500 mt-0.5">Conformidade com a LGPD — Lei nº 13.709/2018</p>
           </div>
         </div>
@@ -123,9 +123,9 @@ export default function DocumentacaoPage() {
           <Item label="Revogação" value="Revogar consentimentos concedidos anteriormente" />
           <Item label="Oposição" value="Opor-se a tratamentos realizados com base em legítimo interesse" />
         </div>
-        <div className="flex items-start gap-2 bg-amber-50 border border-amber-100 rounded-lg px-4 py-3 mt-2">
-          <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
-          <p className="text-xs text-amber-800">
+        <div className="flex items-start gap-2 bg-amber-50 dark:bg-blue-950/20 border border-amber-100 dark:border-blue-800/50 rounded-lg px-4 py-3 mt-2">
+          <AlertTriangle className="h-4 w-4 text-amber-500 dark:text-blue-400 shrink-0 mt-0.5" />
+          <p className="text-xs text-amber-800 dark:text-blue-200">
             A exclusão de dados pode impedir o acesso ao sistema e ao histórico de obras vinculadas ao usuário.
             Dados de auditoria podem ser mantidos por obrigação legal mesmo após a exclusão do usuário.
           </p>

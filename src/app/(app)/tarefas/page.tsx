@@ -392,13 +392,13 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
       <div className="px-5 pb-4">
         {tarefa.nomeTraduzido ? (
           <>
-            <h2 className="text-base font-bold text-gray-900 leading-snug mb-1">
+            <h2 className="text-base font-bold text-gray-900 dark:text-white leading-snug mb-1">
               {tarefa.traducaoJson?.resumoAtividade ?? tarefa.nome}
             </h2>
             <p className="text-xs text-gray-400 italic">{tarefa.nome}</p>
           </>
         ) : (
-          <h2 className="text-base font-semibold text-gray-900 leading-snug">
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white leading-snug">
             {tarefa.nome}
           </h2>
         )}
@@ -422,7 +422,7 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
               <ol className="space-y-2">
                 {tarefa.traducaoJson.subtarefas.map((s: { ordem: number; descricao: string }) => (
                   <li key={s.ordem} className="flex gap-2.5 text-sm text-gray-700">
-                    <span className="shrink-0 w-5 h-5 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center text-[10px] font-bold mt-0.5">
+                    <span className="shrink-0 w-5 h-5 rounded-full bg-amber-100 dark:bg-blue-900/40 text-amber-700 dark:text-blue-300 flex items-center justify-center text-[10px] font-bold mt-0.5">
                       {s.ordem}
                     </span>
                     <span className="leading-snug">{s.descricao}</span>
@@ -437,7 +437,7 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
               <p className="text-[10px] text-gray-400 uppercase font-semibold mb-1.5">Materiais / Ferramentas</p>
               <div className="flex flex-wrap gap-1.5">
                 {tarefa.traducaoJson.materiais.map((m: string, i: number) => (
-                  <span key={i} className="text-xs bg-amber-50 text-amber-800 border border-amber-200 rounded px-2 py-0.5">
+                  <span key={i} className="text-xs bg-amber-50 dark:bg-blue-950/20 text-amber-800 dark:text-blue-300 border border-amber-200 dark:border-blue-800/50 rounded px-2 py-0.5">
                     {m}
                   </span>
                 ))}
@@ -478,7 +478,7 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
             onClick={() => setAbaAtiva(key)}
             className={`px-4 py-2 text-xs font-medium border-b-2 transition-colors ${
               abaAtiva === key
-                ? "border-amber-500 text-amber-700"
+                ? "border-amber-500 dark:border-blue-400 text-amber-700 dark:text-blue-300"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -573,7 +573,7 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
               onChange={(e) => setNovoComentario(e.target.value)}
               onKeyDown={(e) => { if (e.key === "Enter") enviarComentario() }}
               placeholder="Adicionar comentário..."
-              className="flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400"
+              className="flex-1 border rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:ring-2 focus:ring-amber-400 dark:focus:ring-blue-400"
             />
             <Button
               size="sm"
@@ -594,13 +594,13 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
             <p className="text-xs text-gray-400 italic text-center py-4">Nenhuma alteração registrada.</p>
           )}
           {historicoStatus.map((h) => (
-            <div key={h.id} className="flex items-start gap-2 text-xs border-l-2 border-amber-200 pl-3 py-1">
+            <div key={h.id} className="flex items-start gap-2 text-xs border-l-2 border-amber-200 dark:border-blue-700 pl-3 py-1">
               <Clock className="h-3.5 w-3.5 text-gray-400 shrink-0 mt-0.5" />
               <div>
                 <p className="text-gray-700">
                   <span className="line-through text-gray-400">{h.statusAntes}</span>
                   {" → "}
-                  <span className="font-semibold text-amber-700">{h.statusDepois}</span>
+                  <span className="font-semibold text-amber-700 dark:text-blue-300">{h.statusDepois}</span>
                 </p>
                 <p className="text-gray-400 mt-0.5">{h.userNome} · {new Date(h.criadoEm).toLocaleString("pt-BR")}</p>
               </div>
@@ -661,7 +661,7 @@ function PopupTarefa({ tarefa, obraId, versao, idioma, onClose, onStatusChange, 
                     key={i}
                     onClick={() => setImagemIdx(i)}
                     className={`shrink-0 rounded overflow-hidden border-2 transition-colors ${
-                      i === imagemIdx ? "border-amber-500" : "border-transparent"
+                      i === imagemIdx ? "border-amber-500 dark:border-blue-400" : "border-transparent"
                     }`}
                   >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -719,7 +719,7 @@ function CardTarefa({ tarefa, onVerDetalhes }: { tarefa: Tarefa; onVerDetalhes: 
 
   return (
     <div
-      className="border rounded-xl p-4 bg-white space-y-3 hover:border-amber-300 hover:shadow-sm transition-all cursor-pointer"
+      className="border rounded-xl p-4 bg-white dark:bg-card space-y-3 hover:border-amber-300 dark:hover:border-blue-500 hover:shadow-sm transition-all cursor-pointer"
       onClick={onVerDetalhes}
     >
       <div className="flex items-start justify-between gap-2">
@@ -734,13 +734,13 @@ function CardTarefa({ tarefa, onVerDetalhes }: { tarefa: Tarefa; onVerDetalhes: 
           </div>
           {tarefa.nomeTraduzido ? (
             <>
-              <p className="text-sm font-semibold text-gray-900 leading-snug line-clamp-2">
+              <p className="text-sm font-semibold text-gray-900 dark:text-white leading-snug line-clamp-2">
                 {tarefa.traducaoJson?.resumoAtividade ?? tarefa.nome}
               </p>
               <p className="text-xs text-gray-400 mt-0.5 italic truncate">{tarefa.nome}</p>
             </>
           ) : (
-            <p className="text-sm font-medium text-gray-900 line-clamp-2">{tarefa.nome}</p>
+            <p className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2">{tarefa.nome}</p>
           )}
           {tarefa.responsavel && (
             <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1">
@@ -830,18 +830,18 @@ function ObraAccordion({
         onClick={() => setAberta((v) => !v)}
       >
         <div className="flex items-center gap-3 min-w-0">
-          <div className="p-2 bg-amber-100 rounded-lg shrink-0">
-            <Building2 className="h-4 w-4 text-amber-600" />
+          <div className="p-2 bg-amber-100 dark:bg-blue-900/40 rounded-lg shrink-0">
+            <Building2 className="h-4 w-4 text-amber-600 dark:text-blue-400" />
           </div>
           <div className="text-left min-w-0">
-            <p className="font-semibold text-gray-900 truncate">{obra.obraNome}</p>
+            <p className="font-semibold text-gray-900 dark:text-white truncate">{obra.obraNome}</p>
             <p className="text-xs text-gray-400">
               {total} {t(idioma, "tarefasMenu").toLowerCase()} · v{obra.versao}
               {tarefasFiltradas.length !== total && (
-                <span className="ml-2 text-amber-600 font-medium">({tarefasFiltradas.length} visíveis)</span>
+                <span className="ml-2 text-amber-600 dark:text-blue-400 font-medium">({tarefasFiltradas.length} visíveis)</span>
               )}
               {traduzidas > 0 && (
-                <span className="ml-2 text-amber-600 font-medium">
+                <span className="ml-2 text-amber-600 dark:text-blue-400 font-medium">
                   {traduzidas} {t(idioma, "totalTraduzidas").toLowerCase()}
                 </span>
               )}
@@ -1066,7 +1066,7 @@ export default function TarefasPage() {
           <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-400 mb-1">
             {t(idioma, "tarefasMenu")}
           </p>
-          <h1 className="text-2xl font-bold text-gray-900">{t(idioma, "tarefasMenu")}</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t(idioma, "tarefasMenu")}</h1>
           {totalTarefas > 0 && (
             <p className="text-sm text-gray-500 mt-1">
               {totalTarefas} {t(idioma, "tarefasMenu").toLowerCase()}
@@ -1085,8 +1085,8 @@ export default function TarefasPage() {
             title={pushAtivo ? "Desativar notificações" : "Ativar notificações push"}
             className={`shrink-0 flex items-center gap-1.5 text-xs font-medium px-3 py-2 rounded-lg border transition-colors ${
               pushAtivo
-                ? "bg-amber-50 text-amber-700 border-amber-300 hover:bg-amber-100"
-                : "bg-white text-gray-500 border-gray-200 hover:border-amber-300 hover:text-amber-600"
+                ? "bg-amber-50 dark:bg-blue-950/20 text-amber-700 dark:text-blue-300 border-amber-300 dark:border-blue-700 hover:bg-amber-100 dark:hover:bg-blue-900/30"
+                : "bg-white text-gray-500 border-gray-200 hover:border-amber-300 dark:hover:border-blue-500 hover:text-amber-600 dark:hover:text-blue-400"
             }`}
           >
             {pushCarregando ? <Loader2 className="h-4 w-4 animate-spin" /> : pushAtivo ? <Bell className="h-4 w-4" /> : <BellOff className="h-4 w-4" />}
@@ -1123,7 +1123,7 @@ export default function TarefasPage() {
             placeholder={t(idioma, "buscarNomeLocalId")}
             value={busca}
             onChange={(e) => setBusca(e.target.value)}
-            className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 focus:border-amber-400"
+            className="w-full border rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400 dark:focus:ring-blue-400 focus:border-amber-400 dark:focus:border-blue-400"
           />
 
           {/* Filtros de tempo */}

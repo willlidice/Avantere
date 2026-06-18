@@ -59,7 +59,7 @@ export default function HistoricoPage() {
           <ArrowLeft className="h-3.5 w-3.5" />
           Cronograma
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <ClockIcon className="h-6 w-6 text-gray-400" />
           Histórico de edições
         </h1>

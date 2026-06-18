@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import Link from "next/link"
 import { signOut } from "next-auth/react"
-import { ChevronRight, BookOpen, Bell, BellOff, Mail, Loader2, CalendarDays, LogOut, Tag } from "lucide-react"
+import { ChevronRight, BookOpen, Bell, BellOff, Mail, Loader2, CalendarDays, LogOut, Tag, Sun, Moon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -14,6 +14,7 @@ import { Separator } from "@/components/ui/separator"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useIdioma } from "@/contexts/idioma-context"
 import { t, type Idioma } from "@/lib/i18n"
+import { useTema } from "@/hooks/useTema"
 
 const PERFIL_LABEL: Record<string, string> = {
   ADMIN: "Administrador",
@@ -50,6 +51,7 @@ interface DadosUsuario {
 
 export default function ConfiguracoesPage() {
   const { idioma: idiomaCtx, setIdioma: setIdiomaCtx } = useIdioma()
+  const { tema, toggleTema } = useTema()
   const [dados, setDados] = useState<DadosUsuario | null>(null)
   const [erroCarregar, setErroCarregar] = useState<string | null>(null)
 
@@ -222,14 +224,14 @@ export default function ConfiguracoesPage() {
           <CardTitle className="text-base">{t(idiomaCtx, "perfilLabel")}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5">
             <span className="text-sm text-muted-foreground">{t(idiomaCtx, "nome")}</span>
             <span className="text-sm font-medium text-foreground">{dados.nome}</span>
           </div>
           <Separator />
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-0.5">
             <span className="text-sm text-muted-foreground">{t(idiomaCtx, "emailLabel")}</span>
-            <span className="text-sm font-medium text-foreground">{dados.email}</span>
+            <span className="text-sm font-medium text-foreground break-all">{dados.email}</span>
           </div>
           <Separator />
           <div className="flex justify-between items-center">
@@ -294,11 +296,11 @@ export default function ConfiguracoesPage() {
       {/* Histórico de versões (ADMIN/SUPER_ADMIN) */}
       {["ADMIN", "SUPER_ADMIN"].includes(dados.perfil) && (
         <Link href="/configuracoes/historico">
-          <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+          <Card className="hover:bg-accent transition-colors cursor-pointer">
             <CardContent className="flex items-center justify-between py-4">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-lg bg-amber-50 flex items-center justify-center">
-                  <Tag className="h-4 w-4 text-amber-600" />
+                <div className="w-8 h-8 rounded-lg bg-amber-50 dark:bg-blue-950/30 flex items-center justify-center">
+                  <Tag className="h-4 w-4 text-amber-600 dark:text-blue-400" />
                 </div>
                 <div>
                   <p className="text-sm font-medium text-foreground">Histórico de Versões</p>
@@ -313,7 +315,7 @@ export default function ConfiguracoesPage() {
 
       {/* Documentação */}
       <Link href="/configuracoes/documentacao">
-        <Card className="hover:bg-gray-50 transition-colors cursor-pointer">
+        <Card className="hover:bg-accent transition-colors cursor-pointer">
           <CardContent className="flex items-center justify-between py-4">
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
@@ -351,7 +353,7 @@ export default function ConfiguracoesPage() {
                 Receber email de aviso de prazo
               </Label>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
               <Label htmlFor="notif-dias" className="shrink-0 text-sm text-gray-600">Dias de antecedência:</Label>
               <Input
                 id="notif-dias"
@@ -360,7 +362,7 @@ export default function ConfiguracoesPage() {
                 max={90}
                 value={notifDias}
                 onChange={(e) => setNotifDias(Math.max(1, Math.min(90, parseInt(e.target.value) || 7)))}
-                className="w-24"
+                className="w-full sm:w-24"
               />
             </div>
             {erroNotif && <p className="text-sm text-red-600">{erroNotif}</p>}
@@ -398,13 +400,13 @@ export default function ConfiguracoesPage() {
               {tarefasAviso && tarefasAviso.length > 0 && (
                 <div className="border rounded-lg overflow-hidden">
                   {tarefasAviso.map((tarefa) => (
-                    <div key={tarefa.id} className="flex items-start gap-3 px-3 py-2.5 border-b last:border-0 bg-amber-50">
-                      <CalendarDays className="h-4 w-4 text-amber-500 mt-0.5 shrink-0" />
+                    <div key={tarefa.id} className="flex items-start gap-3 px-3 py-2.5 border-b last:border-0 bg-amber-50 dark:bg-blue-950/20">
+                      <CalendarDays className="h-4 w-4 text-amber-500 dark:text-blue-400 mt-0.5 shrink-0" />
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-gray-800 truncate">{tarefa.nomeTraduzido ?? tarefa.nome}</p>
                         <p className="text-xs text-gray-500">{tarefa.obraNome} · {tarefa.local}</p>
                       </div>
-                      <span className="text-xs font-semibold text-amber-700 shrink-0">
+                      <span className="text-xs font-semibold text-amber-700 dark:text-blue-300 shrink-0">
                         {new Date(tarefa.fim).toLocaleDateString("pt-BR", { timeZone: "UTC", dateStyle: "short" })}
                       </span>
                     </div>
@@ -442,6 +444,30 @@ export default function ConfiguracoesPage() {
 
           <Button onClick={salvarIdioma} disabled={salvandoIdioma} className="w-full">
             {salvandoIdioma ? t(idiomaCtx, "salvando") : t(idiomaCtx, "salvarIdiomaBtn")}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Aparência */}
+      <Card>
+        <CardContent className="flex items-center justify-between py-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-lg bg-stone-100 dark:bg-stone-800 flex items-center justify-center">
+              {tema === "dark"
+                ? <Moon className="h-4 w-4 text-stone-400" />
+                : <Sun className="h-4 w-4 text-amber-500 dark:text-blue-400" />}
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">Aparência</p>
+              <p className="text-xs text-muted-foreground">
+                {tema === "dark" ? "Modo escuro ativo" : "Modo claro ativo"}
+              </p>
+            </div>
+          </div>
+          <Button variant="outline" size="sm" onClick={toggleTema}>
+            {tema === "dark"
+              ? <><Sun className="h-4 w-4 mr-1.5" />Modo claro</>
+              : <><Moon className="h-4 w-4 mr-1.5" />Modo escuro</>}
           </Button>
         </CardContent>
       </Card>

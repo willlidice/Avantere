@@ -10,7 +10,8 @@ const config: Config = {
   theme: {
     extend: {
       fontFamily: {
-        sans: ["var(--font-jakarta)", "system-ui", "sans-serif"],
+        sans: ["var(--font-jost)", "var(--font-jakarta)", "system-ui", "sans-serif"],
+        display: ["var(--font-michroma)", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",

@@ -76,7 +76,7 @@ export default function BuscaPage() {
         <p className="text-[11px] font-semibold uppercase tracking-[0.1em] text-gray-400 mb-1">
           Global
         </p>
-        <h1 className="text-2xl font-bold text-gray-900">Busca Global</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Busca Global</h1>
         <p className="text-sm text-gray-500 mt-0.5">Pesquise tarefas por nome, local, responsável ou ID em todas as obras</p>
       </div>
 
@@ -145,7 +145,7 @@ export default function BuscaPage() {
                           </span>
                         )}
                       </div>
-                      <p className="text-sm font-medium text-gray-900 truncate">{t.nome}</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-white truncate">{t.nome}</p>
                       {t.nomeTraduzido && (
                         <p className="text-xs text-blue-600 truncate">{t.nomeTraduzido}</p>
                       )}

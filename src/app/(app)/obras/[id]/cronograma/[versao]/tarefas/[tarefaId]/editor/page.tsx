@@ -46,7 +46,7 @@ export default async function EditorPage({ params }: Params) {
           <ArrowLeft className="h-3.5 w-3.5" />
           Voltar ao cronograma
         </Link>
-        <h1 className="text-xl font-bold text-gray-900">Editor de Imagem</h1>
+        <h1 className="text-xl font-bold text-gray-900 dark:text-white">Editor de Imagem</h1>
         <p className="text-sm text-gray-500">
           {obra.nome} · v{versao} · {tarefa.nome}
         </p>

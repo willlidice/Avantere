@@ -78,7 +78,7 @@ function calcularDiff(tarefasA: Tarefa[], tarefasB: Tarefa[]): DiffRow[] {
 
 const STATUS_ESTILO: Record<DiffStatus, string> = {
   igual: "",
-  modificado: "bg-amber-50",
+  modificado: "bg-amber-50 dark:bg-blue-950/20",
   "somente-a": "bg-red-50",
   "somente-b": "bg-green-50",
 }
@@ -163,7 +163,7 @@ export default function CompararPage() {
           <ArrowLeft className="h-3.5 w-3.5" />
           Cronograma
         </Link>
-        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
           <GitCompare className="h-6 w-6 text-gray-400" />
           Comparar versões
         </h1>
@@ -227,7 +227,7 @@ export default function CompararPage() {
             {resumo.iguais} iguais
           </span>
           {resumo.modificados > 0 && (
-            <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border bg-amber-50 text-amber-700 border-amber-200">
+            <span className="inline-flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-full border bg-amber-50 dark:bg-blue-950/20 text-amber-700 dark:text-blue-300 border-amber-200 dark:border-blue-800/50">
               <AlertTriangle className="h-3.5 w-3.5" />
               {resumo.modificados} modificada{resumo.modificados !== 1 ? "s" : ""}
             </span>
@@ -282,7 +282,7 @@ export default function CompararPage() {
                   <td className="px-3 py-2 border-b text-center">
                     {row.status === "igual" && <span className="text-gray-300">—</span>}
                     {row.status === "modificado" && (
-                      <span className="inline-flex items-center gap-0.5 text-amber-600" title={`Campos: ${row.diferencas.join(", ")}`}>
+                      <span className="inline-flex items-center gap-0.5 text-amber-600 dark:text-blue-400" title={`Campos: ${row.diferencas.join(", ")}`}>
                         <AlertTriangle className="h-3.5 w-3.5" />
                       </span>
                     )}

@@ -30,17 +30,17 @@ export function BoasVindasBanner() {
 
   return (
     <div className="mx-4 md:mx-6 mt-4 md:mt-5 mb-0">
-      <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl px-4 py-3">
+      <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-blue-950/30 dark:to-blue-900/20 border border-amber-200 dark:border-blue-800/50 rounded-xl px-4 py-3">
         <div className="flex items-start justify-between gap-3">
           <div className="flex items-start gap-3 flex-1 min-w-0">
-            <div className="bg-amber-500 p-2 rounded-lg shrink-0 mt-0.5">
+            <div className="bg-amber-500 dark:bg-blue-600 p-2 rounded-lg shrink-0 mt-0.5">
               <HardHat className="h-4 w-4 text-white" />
             </div>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-amber-900">
+              <p className="text-sm font-semibold text-amber-900 dark:text-blue-100">
                 {saudacao}, {nome}! Bem-vindo(a) ao Avantere.
               </p>
-              <p className="text-xs text-amber-700 mt-0.5 leading-snug">
+              <p className="text-xs text-amber-700 dark:text-blue-300 mt-0.5 leading-snug">
                 Acompanhe o andamento das suas obras e tarefas em tempo real.
               </p>
               <div className="flex items-center gap-1.5 mt-2 flex-wrap">
@@ -52,7 +52,7 @@ export function BoasVindasBanner() {
                 </span>
                 <Link
                   href="/documentacao"
-                  className="text-xs text-amber-700 font-semibold underline underline-offset-2 hover:text-amber-900 whitespace-nowrap"
+                  className="text-xs text-amber-700 dark:text-blue-300 font-semibold underline underline-offset-2 hover:text-amber-900 dark:hover:text-blue-100 whitespace-nowrap"
                 >
                   Saiba mais →
                 </Link>
@@ -61,7 +61,7 @@ export function BoasVindasBanner() {
           </div>
           <button
             onClick={dispensar}
-            className="text-amber-400 hover:text-amber-600 transition-colors shrink-0"
+            className="text-amber-400 dark:text-blue-400 hover:text-amber-600 dark:hover:text-blue-300 transition-colors shrink-0"
             title="Fechar"
           >
             <X className="h-4 w-4" />

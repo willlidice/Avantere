@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
-import { Pencil, ToggleLeft, ToggleRight, KeyRound, Eye, EyeOff, Loader2 } from "lucide-react"
+import { Pencil, ToggleLeft, ToggleRight, KeyRound, Eye, EyeOff, Loader2, Mail } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Input } from "@/components/ui/input"
@@ -52,6 +52,10 @@ export function UsuariosLista({ usuarios: inicial }: { usuarios: Usuario[] }) {
   const [salvandoSenha, setSalvandoSenha] = useState(false)
   const [erroSenha, setErroSenha] = useState<string | null>(null)
   const [sucesso, setSucesso] = useState<string | null>(null)
+  const [modalBoasVindas, setModalBoasVindas] = useState<Usuario | null>(null)
+  const [enviandoBoasVindas, setEnviandoBoasVindas] = useState(false)
+  const [erroBoasVindas, setErroBoasVindas] = useState<string | null>(null)
+  const [sucessoBoasVindas, setSucessoBoasVindas] = useState<string | null>(null)
 
   async function toggleAtivo(usuario: Usuario) {
     setCarregando(usuario.id)
@@ -98,6 +102,29 @@ export function UsuariosLista({ usuarios: inicial }: { usuarios: Usuario[] }) {
       }
     } finally {
       setSalvandoSenha(false)
+    }
+  }
+
+  function abrirModalBoasVindas(usuario: Usuario) {
+    setModalBoasVindas(usuario)
+    setErroBoasVindas(null)
+    setSucessoBoasVindas(null)
+  }
+
+  async function enviarBoasVindas() {
+    if (!modalBoasVindas) return
+    setEnviandoBoasVindas(true)
+    setErroBoasVindas(null)
+    try {
+      const res = await fetch(`/api/usuarios/${modalBoasVindas.id}/boas-vindas`, { method: "POST" })
+      if (res.ok) {
+        setSucessoBoasVindas(`E-mail de boas-vindas enviado para ${modalBoasVindas.email}.`)
+      } else {
+        const data = await res.json()
+        setErroBoasVindas(data.erro ?? "Erro ao enviar e-mail")
+      }
+    } finally {
+      setEnviandoBoasVindas(false)
     }
   }
 
@@ -153,6 +180,14 @@ export function UsuariosLista({ usuarios: inicial }: { usuarios: Usuario[] }) {
                       <KeyRound className="h-3.5 w-3.5" />
                     </Button>
                     <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => abrirModalBoasVindas(u)}
+                      title="Enviar e-mail de boas-vindas"
+                    >
+                      <Mail className="h-3.5 w-3.5" />
+                    </Button>
+                    <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => toggleAtivo(u)}
@@ -204,6 +239,14 @@ export function UsuariosLista({ usuarios: inicial }: { usuarios: Usuario[] }) {
                   <KeyRound className="h-3.5 w-3.5" />
                 </Button>
                 <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => abrirModalBoasVindas(u)}
+                  title="Enviar e-mail de boas-vindas"
+                >
+                  <Mail className="h-3.5 w-3.5" />
+                </Button>
+                <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => toggleAtivo(u)}
@@ -228,7 +271,7 @@ export function UsuariosLista({ usuarios: inicial }: { usuarios: Usuario[] }) {
         <DialogContent className="max-w-sm">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
-              <KeyRound className="h-5 w-5 text-amber-600" />
+              <KeyRound className="h-5 w-5 text-amber-600 dark:text-blue-400" />
               Redefinir senha
             </DialogTitle>
           </DialogHeader>
@@ -286,6 +329,57 @@ export function UsuariosLista({ usuarios: inicial }: { usuarios: Usuario[] }) {
                   <Button size="sm" onClick={salvarSenha} disabled={salvandoSenha || !novaSenha}>
                     {salvandoSenha && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
                     {salvandoSenha ? "Salvando..." : "Salvar senha"}
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Modal: Enviar boas-vindas */}
+      <Dialog open={!!modalBoasVindas} onOpenChange={(open) => { if (!open) setModalBoasVindas(null) }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Mail className="h-5 w-5 text-amber-600 dark:text-blue-400" />
+              Enviar boas-vindas
+            </DialogTitle>
+          </DialogHeader>
+          {modalBoasVindas && (
+            <div className="space-y-4">
+              <div className="bg-gray-50 rounded-lg px-4 py-3 space-y-1">
+                <p className="text-xs text-gray-400 uppercase font-semibold tracking-wide">Usuário</p>
+                <p className="font-medium text-gray-900">{modalBoasVindas.nome}</p>
+                <p className="text-xs text-gray-500">{modalBoasVindas.email}</p>
+              </div>
+
+              {sucessoBoasVindas ? (
+                <div className="bg-green-50 border border-green-200 rounded-lg px-4 py-3">
+                  <p className="text-sm text-green-700">{sucessoBoasVindas}</p>
+                </div>
+              ) : (
+                <>
+                  <p className="text-sm text-gray-600">
+                    Será gerada uma nova senha temporária para este usuário e enviada por e-mail junto com o link de acesso. A senha atual deixará de funcionar.
+                  </p>
+
+                  {erroBoasVindas && (
+                    <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded px-3 py-2">
+                      {erroBoasVindas}
+                    </p>
+                  )}
+                </>
+              )}
+
+              <div className="flex justify-end gap-2 pt-1">
+                <Button variant="outline" size="sm" onClick={() => setModalBoasVindas(null)}>
+                  {sucessoBoasVindas ? "Fechar" : "Cancelar"}
+                </Button>
+                {!sucessoBoasVindas && (
+                  <Button size="sm" onClick={enviarBoasVindas} disabled={enviandoBoasVindas}>
+                    {enviandoBoasVindas && <Loader2 className="h-4 w-4 mr-1.5 animate-spin" />}
+                    {enviandoBoasVindas ? "Enviando..." : "Confirmar e enviar"}
                   </Button>
                 )}
               </div>
